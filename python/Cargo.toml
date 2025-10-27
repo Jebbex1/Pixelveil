@@ -1,0 +1,25 @@
+[package]
+name = "pyxelveil"                       # name of the Python module (and shared lib)
+version = "0.1.0"
+edition = "2024"
+description = ""
+license = "MIT"
+authors = ["Jebbex <107323805+Jebbex1@users.noreply.github.com>"]
+readme = "../README.md"
+
+# This crate compiles to a Python extension module (.so / .pyd)
+[lib]
+name = "pyxelveil"
+crate-type = ["cdylib"]
+
+[dependencies]
+# The core Rust logic — local crate
+pixelveil = { path = "../core" }
+
+# PyO3 for Python bindings
+pyo3 = { version = "0.27.1", features = ["extension-module"] }
+
+
+[package.metadata.maturin]
+# Optional but useful: ensures maturin knows this crate is the Python extension
+bindings = "pyo3"

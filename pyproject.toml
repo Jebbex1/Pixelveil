@@ -1,0 +1,22 @@
+[project]
+name = "pixelveil"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Jebbex",email = "107323805+Jebbex1@users.noreply.github.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["maturin>=1.2"]
+build-backend = "maturin"
+
+
+[tool.maturin]
+manifest-path = "python/Cargo.toml"
+bindings = "pyo3"
