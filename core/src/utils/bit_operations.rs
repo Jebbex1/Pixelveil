@@ -1,11 +1,16 @@
-use std::{error::Error, iter, str::{self, Utf8Error}};
+use std::{
+    iter,
+    str::{self, Utf8Error},
+};
 
-pub(crate) fn xor_bits(a: impl Iterator<Item=bool>, b: impl Iterator<Item=bool>) -> impl Iterator<Item=bool> {
+pub(crate) fn xor_bits(
+    a: impl Iterator<Item = bool>,
+    b: impl Iterator<Item = bool>,
+) -> impl Iterator<Item = bool> {
     a.zip(b).map(|(x, y)| x ^ y)
 }
 
-
-pub(crate) fn bits_to_bytes(mut bits: impl Iterator<Item=bool>) -> impl Iterator<Item=u8> {
+pub(crate) fn bits_to_bytes(mut bits: impl Iterator<Item = bool>) -> impl Iterator<Item = u8> {
     iter::from_fn(move || {
         let mut byte = 0u8;
         let mut bits_read = 0;
@@ -14,26 +19,22 @@ pub(crate) fn bits_to_bytes(mut bits: impl Iterator<Item=bool>) -> impl Iterator
             match bits.next() {
                 Some(bit) => {
                     byte <<= 1;
-                    if bit {byte |= 1;}
+                    if bit {
+                        byte |= 1;
+                    }
                     bits_read += 1;
                 }
                 None => break,
             }
         }
 
-        if bits_read == 0 {
-            None
-        } else {
-            Some(byte)
-        }
+        if bits_read == 0 { None } else { Some(byte) }
     })
 }
 
-
-pub(crate) fn bytes_to_utf8(v: &Vec<u8>) -> Result<&str, Utf8Error>{
+pub(crate) fn bytes_to_utf8(v: &Vec<u8>) -> Result<&str, Utf8Error> {
     str::from_utf8(v)
 }
-
 
 #[cfg(test)]
 mod tests {
