@@ -12,3 +12,4 @@ name = "pixelveil"
 path = "src/lib.rs"
 
 [dependencies]
+image = "0.25.8"
