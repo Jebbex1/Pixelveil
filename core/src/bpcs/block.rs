@@ -1,27 +1,50 @@
 use crate::bpcs::bit_plane::BitPlane;
 use crate::utils::bit_operations::get_bits;
-use image::{GenericImageView, Rgb, RgbImage, SubImage};
+use image::{GenericImageView, Rgb, RgbImage};
+use std::collections::HashMap;
 
 pub(crate) const BLOCK_SIZE: u32 = 8;
 
-struct Block<'a> {
+pub(crate) struct Block {
     coords: (u32, u32),
-    sub_image: SubImage<&'a RgbImage>,
-    // TODO: make a way of storing all the 24 bit planes in the block, maybe using a HashMap with the channel and bit index as the keys.
+    bit_planes: HashMap<(usize, usize), BitPlane>, // k: (rgb channel index, bit index)
 }
 
-impl<'a> Block<'a> {
-    fn new(source_image: &'a RgbImage, coords: (u32, u32)) -> Self {
-        Block {
-            coords,
-            sub_image: source_image.view(coords.0, coords.1, BLOCK_SIZE, BLOCK_SIZE),
+impl Block {
+    pub(crate) fn new(source_image: &RgbImage, coords: (u32, u32)) -> Self {
+        let mut map = HashMap::new();
+        for chal in 0..3 {
+            for bit_index in 0..8 {
+                map.insert((chal, bit_index), BitPlane::new());
+            }
         }
+
+        let mut b = Block {
+            coords,
+            bit_planes: map,
+        };
+
+        let img = source_image.view(coords.0, coords.1, BLOCK_SIZE, BLOCK_SIZE);
+        let pixels = img.pixels();
+
+        for (x, y, p) in pixels {
+            b.insert_pixel((x as usize, y as usize), p);
+        }
+        b
     }
 
-    fn insert_pixel(&mut self, coords: (u32, u32), pixel: Rgb<u8>) {
-        for byte in pixel.0 {
-            // TODO: track the current channel of the pixel and use it with the bit index to insert the bit into the matching bit plane.
-            let bits = get_bits(byte);
+    pub(crate) fn insert_pixel(&mut self, coords: (usize, usize), pixel: Rgb<u8>) {
+        for chal in 0..3 {
+            let bits = get_bits(pixel.0[chal]);
+            for i in 0..8 {
+                if let Some(bit_plane) = self.bit_planes.get_mut(&(chal, i)) {
+                    bit_plane.set(coords, bits[i as usize]);
+                } else {
+                    panic!(
+                        "Tried to access bit plane outside of channel/bit index bounds: {chal:?},{i:?}"
+                    )
+                }
+            }
         }
     }
 }
