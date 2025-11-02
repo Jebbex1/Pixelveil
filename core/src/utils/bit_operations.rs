@@ -36,6 +36,13 @@ pub(crate) fn bytes_to_utf8(v: &Vec<u8>) -> Result<&str, Utf8Error> {
     str::from_utf8(v)
 }
 
+pub(crate) fn get_bits(byte: u8) -> [bool; 8] {
+    let mut l = [false; 8];
+    for i in 0..8 {
+        l[i] = ((byte >> 7 - i) & 1) != 0;
+    }
+    l
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -61,5 +68,14 @@ mod tests {
     fn test_bytes_to_str() {
         let v1 = vec![0x20, 0x00];
         assert_eq!(bytes_to_utf8(&v1).unwrap(), "\x20\x00");
+    }
+
+    #[test]
+    fn test_get_bits() {
+        let b1 = 0b01101011 as u8;
+        assert_eq!(
+            get_bits(b1),
+            [false, true, true, false, true, false, true, true]
+        )
     }
 }

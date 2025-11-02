@@ -11,3 +11,10 @@ pub(crate) fn open_image_from_raw(
     img.set_format(format);
     Ok(img.decode()?)
 }
+
+#[repr(u8)]
+pub(crate) enum RgbChannel {
+    Red = 0,
+    Green = 1,
+    Blue = 2,
+}
