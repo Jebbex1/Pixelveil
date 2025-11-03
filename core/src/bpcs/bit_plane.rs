@@ -12,6 +12,10 @@ impl BitPlane {
     }
 
     pub(crate) fn set(&mut self, coords: (usize, usize), val: bool) {
+        assert!(
+            coords.0 < BLOCK_SIZE as usize && coords.1 < BLOCK_SIZE as usize,
+            "Specified coords are out of bounds: coords: {coords:?}"
+        );
         self.bits[coords.0][coords.1] = val;
     }
 }
@@ -44,5 +48,12 @@ mod tests {
                 [false, false, false, false, false, false, false, false],
             ]
         )
+    }
+
+    #[test]
+    #[should_panic(expected = "Specified coords are out of bounds: coords: (6, 9)")]
+    fn test_set_out_of_bounds() {
+        let mut b = BitPlane::new();
+        b.set((6, 9), false);
     }
 }

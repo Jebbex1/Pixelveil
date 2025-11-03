@@ -3,7 +3,7 @@ use crate::utils::bit_operations::get_bits;
 use image::{GenericImageView, Rgb, RgbImage, SubImage};
 use std::collections::HashMap;
 
-pub(crate) const BLOCK_SIZE: u32 = 8;
+pub(crate) const BLOCK_SIZE: u32 = 8; // because the limitations for image dimensions are limited to u32, so will block sizes.
 
 pub(crate) struct Block {
     pub(crate) coords: (u32, u32),
@@ -110,5 +110,13 @@ mod tests {
         }
 
         Ok(())
+    }
+
+    #[test]
+    #[should_panic(expected = "Specified coords are out of bounds: coords: (8, 3)")]
+    fn test_insert_pixel_out_of_bounds() {
+        let mut b = get_new_empty_block().unwrap();
+
+        b.insert_pixel((8, 3), Rgb::<u8>([240, 100, 4]));
     }
 }
