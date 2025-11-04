@@ -1,11 +1,15 @@
-pub(crate) const PLANE_SIZE: usize = 8;
-const MAX_BIT_CHANGES: usize = ((PLANE_SIZE - 1) * PLANE_SIZE) + ((PLANE_SIZE - 1) * PLANE_SIZE);
+use crate::utils::bit_operations::get_bit;
+use image::{GenericImageView, RgbImage, SubImage};
 
-pub(crate) fn checkerboard() -> [[bool; PLANE_SIZE]; PLANE_SIZE] {
-    let mut board = [[false; PLANE_SIZE]; PLANE_SIZE];
+pub(crate) const PLANE_SIZE: u32 = 8;
+const USIZE_PLANE_SIZE: usize = PLANE_SIZE as usize;
+const MAX_BIT_CHANGES: u32 = ((PLANE_SIZE - 1) * PLANE_SIZE) + ((PLANE_SIZE - 1) * PLANE_SIZE);
 
-    for y in 0..PLANE_SIZE {
-        for x in 0..PLANE_SIZE {
+pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
+    let mut board = [[false; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE];
+
+    for y in 0..USIZE_PLANE_SIZE {
+        for x in 0..USIZE_PLANE_SIZE {
             board[y][x] = (x + y) % 2 != 0;
         }
     }
@@ -14,17 +18,36 @@ pub(crate) fn checkerboard() -> [[bool; PLANE_SIZE]; PLANE_SIZE] {
 }
 
 pub(crate) struct BitPlane {
-    pub(crate) bits: [[bool; PLANE_SIZE]; PLANE_SIZE],
+    pub(crate) bits: [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE],
 }
 
 impl BitPlane {
     pub(crate) fn new() -> Self {
         BitPlane {
-            bits: [[false; PLANE_SIZE]; PLANE_SIZE],
+            bits: [[false; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE],
         }
     }
 
-    pub(crate) fn set(&mut self, coords: (usize, usize), val: bool) {
+    pub(crate) fn from_sub_image(
+        sub_image: SubImage<&RgbImage>,
+        channel: u8,
+        bit_index: u8,
+    ) -> Self {
+        assert!(
+            sub_image.width() == PLANE_SIZE && sub_image.height() == PLANE_SIZE,
+            "Supplied SubImage incorrect dimensions to block of dimensions {PLANE_SIZE},{PLANE_SIZE}."
+        );
+        let mut p = BitPlane::new();
+        for (x, y, pixel) in sub_image.pixels() {
+            p.set_bit(
+                (x as usize, y as usize),
+                get_bit(pixel.0[channel as usize], bit_index),
+            );
+        }
+        p
+    }
+
+    pub(crate) fn set_bit(&mut self, coords: (usize, usize), val: bool) {
         assert!(
             coords.0 < PLANE_SIZE as usize && coords.1 < PLANE_SIZE as usize,
             "Specified coords are out of bounds: coords: {coords:?}"
@@ -34,8 +57,8 @@ impl BitPlane {
 
     pub(crate) fn conjugate(&mut self) {
         let checkerboard = checkerboard();
-        for x in 0..PLANE_SIZE {
-            for y in 0..PLANE_SIZE {
+        for x in 0..USIZE_PLANE_SIZE {
+            for y in 0..USIZE_PLANE_SIZE {
                 self.bits[x][y] ^= checkerboard[x][y];
             }
         }
@@ -43,15 +66,15 @@ impl BitPlane {
 
     pub(crate) fn complexity_coeff(&self) -> f64 {
         let mut changes: usize = 0;
-        for x in 1..PLANE_SIZE {
-            for y in 0..PLANE_SIZE {
+        for x in 1..USIZE_PLANE_SIZE {
+            for y in 0..USIZE_PLANE_SIZE {
                 if self.bits[x][y] != self.bits[x - 1][y] {
                     changes += 1;
                 }
             }
         }
-        for y in 1..PLANE_SIZE {
-            for x in 0..PLANE_SIZE {
+        for y in 1..USIZE_PLANE_SIZE {
+            for x in 0..USIZE_PLANE_SIZE {
                 if self.bits[x][y] != self.bits[x][y - 1] {
                     changes += 1;
                 }
@@ -63,18 +86,20 @@ impl BitPlane {
 
 #[cfg(test)]
 mod tests {
-    use crate::bpcs::bit_plane::{BitPlane, PLANE_SIZE, checkerboard};
+    use image::GenericImageView;
+
+    use crate::{bpcs::bit_plane::{BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE, checkerboard}, utils::image_handling::open_lossless_image_from_raw};
 
     #[test]
     fn test_creation() {
         let b = BitPlane::new();
-        assert_eq!(b.bits, [[false; PLANE_SIZE]; PLANE_SIZE]);
+        assert_eq!(b.bits, [[false; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE]);
     }
 
     #[test]
     fn test_set_bit() {
         let mut b = BitPlane::new();
-        b.set((0, 0), true);
+        b.set_bit((0, 0), true);
         assert_eq!(
             b.bits,
             [
@@ -94,7 +119,7 @@ mod tests {
     #[should_panic(expected = "Specified coords are out of bounds: coords: (6, 9)")]
     fn test_set_out_of_bounds() {
         let mut b = BitPlane::new();
-        b.set((6, 9), false);
+        b.set_bit((6, 9), false);
     }
 
     #[test]
@@ -103,7 +128,7 @@ mod tests {
         expected[0][0] = true;
 
         let mut p = BitPlane::new();
-        p.set((0, 0), true);
+        p.set_bit((0, 0), true);
 
         p.conjugate();
 
@@ -113,12 +138,12 @@ mod tests {
     #[test]
     fn test_complexity_coeff_calc() {
         let b1 = BitPlane {
-            bits: [[false; PLANE_SIZE]; PLANE_SIZE],
+            bits: [[false; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE],
         };
         assert_eq!(b1.complexity_coeff(), 0f64);
 
         let b2 = BitPlane {
-            bits: [[true; PLANE_SIZE]; PLANE_SIZE],
+            bits: [[true; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE],
         };
         assert_eq!(b2.complexity_coeff(), 0f64);
 
@@ -126,5 +151,17 @@ mod tests {
             bits: checkerboard(),
         };
         assert_eq!(b3.complexity_coeff(), 1f64);
+    }
+
+    #[test]
+    fn test_from_sub_image() -> Result<(), Box<dyn std::error::Error>> {
+        let img = image::open("tests/assets/test_img_1.png")?.to_rgb8();
+        let sub_img = img.view(0, 0, PLANE_SIZE as u32, PLANE_SIZE as u32);
+        let p = BitPlane::from_sub_image(sub_img, 1, 1);
+        assert_eq!(
+            p.bits,
+            [[true; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE]
+        );
+        Ok(())
     }
 }
