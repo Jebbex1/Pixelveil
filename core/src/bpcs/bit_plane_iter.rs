@@ -1,5 +1,5 @@
 use crate::bpcs::bit_plane::{BitPlane, PLANE_SIZE};
-use image::{GenericImageView, Rgb, RgbImage, SubImage};
+use image::{GenericImageView, RgbImage, SubImage};
 
 pub(crate) struct BitPlaneIter<'a> {
     pub(crate) current_sub_image: SubImage<&'a RgbImage>,

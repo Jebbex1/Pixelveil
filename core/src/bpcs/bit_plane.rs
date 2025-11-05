@@ -47,6 +47,16 @@ impl BitPlane {
         p
     }
 
+    pub(crate) fn from_bits(bit_array: [bool; USIZE_PLANE_SIZE*USIZE_PLANE_SIZE]) -> Self {
+        let mut p = BitPlane::new();
+        for i in 0..USIZE_PLANE_SIZE {
+            for j in 0..USIZE_PLANE_SIZE {
+                p.set_bit((i, j), bit_array[(i*USIZE_PLANE_SIZE) + j]);
+            }
+        }
+        p
+    }
+
     pub(crate) fn set_bit(&mut self, coords: (usize, usize), val: bool) {
         assert!(
             coords.0 < PLANE_SIZE as usize && coords.1 < PLANE_SIZE as usize,
@@ -163,5 +173,22 @@ mod tests {
             [[true; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE]
         );
         Ok(())
+    }
+
+    #[test]
+    fn test_from_bits() {
+        let mut bits = [false; USIZE_PLANE_SIZE*USIZE_PLANE_SIZE];
+        bits[1] = true;
+        bits[10] = true;
+
+        let mut expected = [[false; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE];
+        expected[0][1] = true;
+        expected[1][2] = true;
+
+        let p = BitPlane::from_bits(bits);
+        assert_eq!(
+            p.bits,
+            expected
+        );
     }
 }
