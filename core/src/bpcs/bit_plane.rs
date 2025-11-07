@@ -47,11 +47,11 @@ impl BitPlane {
         p
     }
 
-    pub(crate) fn from_bits(bit_array: [bool; USIZE_PLANE_SIZE*USIZE_PLANE_SIZE]) -> Self {
+    pub(crate) fn from_bits(bit_array: [bool; USIZE_PLANE_SIZE * USIZE_PLANE_SIZE]) -> Self {
         let mut p = BitPlane::new();
         for i in 0..USIZE_PLANE_SIZE {
             for j in 0..USIZE_PLANE_SIZE {
-                p.set_bit((i, j), bit_array[(i*USIZE_PLANE_SIZE) + j]);
+                p.set_bit((i, j), bit_array[(i * USIZE_PLANE_SIZE) + j]);
             }
         }
         p
@@ -74,7 +74,7 @@ impl BitPlane {
         }
     }
 
-    pub(crate) fn complexity_coeff(&self) -> f64 {
+    pub(crate) fn alpha(&self) -> f64 {
         let mut changes: usize = 0;
         for x in 1..USIZE_PLANE_SIZE {
             for y in 0..USIZE_PLANE_SIZE {
@@ -98,7 +98,7 @@ impl BitPlane {
 mod tests {
     use image::GenericImageView;
 
-    use crate::{bpcs::bit_plane::{BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE, checkerboard}, utils::image_handling::open_lossless_image_from_raw};
+    use crate::bpcs::bit_plane::{BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE, checkerboard};
 
     #[test]
     fn test_creation() {
@@ -150,17 +150,17 @@ mod tests {
         let b1 = BitPlane {
             bits: [[false; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE],
         };
-        assert_eq!(b1.complexity_coeff(), 0f64);
+        assert_eq!(b1.alpha(), 0f64);
 
         let b2 = BitPlane {
             bits: [[true; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE],
         };
-        assert_eq!(b2.complexity_coeff(), 0f64);
+        assert_eq!(b2.alpha(), 0f64);
 
         let b3 = BitPlane {
             bits: checkerboard(),
         };
-        assert_eq!(b3.complexity_coeff(), 1f64);
+        assert_eq!(b3.alpha(), 1f64);
     }
 
     #[test]
@@ -168,16 +168,13 @@ mod tests {
         let img = image::open("tests/assets/test_img_1.png")?.to_rgb8();
         let sub_img = img.view(0, 0, PLANE_SIZE as u32, PLANE_SIZE as u32);
         let p = BitPlane::from_sub_image(sub_img, 1, 1);
-        assert_eq!(
-            p.bits,
-            [[true; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE]
-        );
+        assert_eq!(p.bits, [[true; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE]);
         Ok(())
     }
 
     #[test]
     fn test_from_bits() {
-        let mut bits = [false; USIZE_PLANE_SIZE*USIZE_PLANE_SIZE];
+        let mut bits = [false; USIZE_PLANE_SIZE * USIZE_PLANE_SIZE];
         bits[1] = true;
         bits[10] = true;
 
@@ -186,9 +183,6 @@ mod tests {
         expected[1][2] = true;
 
         let p = BitPlane::from_bits(bits);
-        assert_eq!(
-            p.bits,
-            expected
-        );
+        assert_eq!(p.bits, expected);
     }
 }
