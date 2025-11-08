@@ -1,8 +1,9 @@
-use crate::utils::bit_operations::get_bit;
+use crate::utils::bit_operations::{bits_to_byte, get_bit};
 use image::{GenericImageView, RgbImage, SubImage};
 
 pub(crate) const PLANE_SIZE: u32 = 8;
-const USIZE_PLANE_SIZE: usize = PLANE_SIZE as usize;
+pub(crate) const USIZE_PLANE_SIZE: usize = PLANE_SIZE as usize;
+pub(crate) const BYTES_PER_PLANE: usize = (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) / 8;
 const MAX_BIT_CHANGES: u32 = ((PLANE_SIZE - 1) * PLANE_SIZE) + ((PLANE_SIZE - 1) * PLANE_SIZE);
 
 pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
@@ -55,6 +56,21 @@ impl BitPlane {
             }
         }
         p
+    }
+
+    pub(crate) fn export(self) -> [u8; BYTES_PER_PLANE] {
+        let bits_flattened: [bool; USIZE_PLANE_SIZE * USIZE_PLANE_SIZE] = self
+            .bits
+            .into_iter()
+            .flatten()
+            .collect::<Vec<bool>>()
+            .try_into()
+            .unwrap();
+        let mut bytes = [0u8; BYTES_PER_PLANE];
+        for i in 0..BYTES_PER_PLANE {
+            bytes[i] = bits_to_byte(bits_flattened[i * 8..(i + 1) * 8].try_into().unwrap())
+        }
+        bytes
     }
 
     pub(crate) fn set_bit(&mut self, coords: (usize, usize), val: bool) {
@@ -184,5 +200,29 @@ mod tests {
 
         let p = BitPlane::from_bits(bits);
         assert_eq!(p.bits, expected);
+    }
+
+    #[test]
+    fn test_export() {
+        let mut bits = [false; USIZE_PLANE_SIZE * USIZE_PLANE_SIZE];
+        bits[1] = true;
+        bits[10] = true;
+
+        let p = BitPlane::from_bits(bits);
+        let bytes = p.export();
+
+        assert_eq!(
+            bytes,
+            [
+                0b01000000u8,
+                0b00100000u8,
+                0b00000000u8,
+                0b00000000u8,
+                0b00000000u8,
+                0b00000000u8,
+                0b00000000u8,
+                0b00000000u8
+            ]
+        );
     }
 }

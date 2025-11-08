@@ -10,6 +10,17 @@ pub(crate) fn xor_bits(
     a.zip(b).map(|(x, y)| x ^ y)
 }
 
+pub(crate) fn bits_to_byte(bits: [bool; 8]) -> u8 {
+    let mut byte = 0u8;
+    for i in 0..8 {
+        byte <<= 1;
+        if bits[i] {
+            byte |= 1;
+        }
+    }
+    byte
+}
+
 pub(crate) fn bits_to_bytes(mut bits: impl Iterator<Item = bool>) -> impl Iterator<Item = u8> {
     iter::from_fn(move || {
         let mut byte = 0u8;
