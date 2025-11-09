@@ -60,6 +60,20 @@ pub(crate) fn get_bits(byte: u8) -> [bool; 8] {
     l
 }
 
+pub(crate) fn to_gray_code(byte: u8) -> u8 {
+    byte ^ (byte >> 1)
+}
+
+pub(crate) fn to_binary_code(byte: u8) -> u8 {
+    let mut mask = byte;
+    let mut binary = byte;
+    while mask != 0 {
+        mask >>= 1;
+        binary ^= mask;
+    }
+    binary
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,5 +114,21 @@ mod tests {
             get_bits(b1),
             [false, true, true, false, true, false, true, true]
         )
+    }
+
+    #[test]
+    fn test_to_gray_code() {
+        assert_eq!(0b0010u8, to_gray_code(0b0011u8)); // 3u8
+        assert_eq!(0b1100u8, to_gray_code(0b1000u8)); // 8u8
+        assert_eq!(0b1011u8, to_gray_code(0b1101u8)); // 13u8
+        assert_eq!(0b1000u8, to_gray_code(0b1111u8)); // 15u8
+    }
+
+    #[test]
+    fn test_to_binary_code() {
+        assert_eq!(to_binary_code(0b0010u8), 0b0011u8); // 3u8
+        assert_eq!(to_binary_code(0b1100u8), 0b1000u8); // 8u8
+        assert_eq!(to_binary_code(0b1011u8), 0b1101u8); // 13u8
+        assert_eq!(to_binary_code(0b1000u8), 0b1111u8); // 15u8
     }
 }
