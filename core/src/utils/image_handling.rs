@@ -15,20 +15,28 @@ pub(crate) fn open_lossless_image_from_raw(raw_data: Vec<u8>) -> Result<RgbImage
     Ok(img.decode()?.to_rgb8())
 }
 
-pub(crate) fn pixel_to_gray_code(pixel: Rgb<u8>) -> Rgb<u8> {
-    Rgb([
-        to_gray_code(pixel.0[0]),
-        to_gray_code(pixel.0[1]),
-        to_gray_code(pixel.0[2]),
-    ])
+pub(crate) fn pixel_to_gray_code(pixel: &mut Rgb<u8>) {
+    pixel.0[0] = to_gray_code(pixel.0[0]);
+    pixel.0[1] = to_gray_code(pixel.0[1]);
+    pixel.0[2] = to_gray_code(pixel.0[2]);
 }
 
-pub(crate) fn pixel_to_binary_code(pixel: Rgb<u8>) -> Rgb<u8> {
-    Rgb([
-        to_binary_code(pixel.0[0]),
-        to_binary_code(pixel.0[1]),
-        to_binary_code(pixel.0[2]),
-    ])
+pub(crate) fn pixel_to_binary_code(pixel: &mut Rgb<u8>) {
+    pixel.0[0] = to_binary_code(pixel.0[0]);
+    pixel.0[1] = to_binary_code(pixel.0[1]);
+    pixel.0[2] = to_binary_code(pixel.0[2]);
+}
+
+pub(crate) fn image_to_gray_code(image: &mut RgbImage) {
+    for pixel in image.pixels_mut() {
+        pixel_to_gray_code(pixel);
+    }
+}
+
+pub(crate) fn image_to_binary_code(image: &mut RgbImage) {
+    for pixel in image.pixels_mut() {
+        pixel_to_binary_code(pixel);
+    }
 }
 
 #[cfg(test)]
@@ -37,25 +45,15 @@ mod tests {
 
     #[test]
     fn test_pixel_to_gray_code() {
-        assert_eq!(
-            Rgb([
-                to_gray_code(0b11101010u8),
-                to_gray_code(0b00110001u8),
-                to_gray_code(0b10101110u8),
-            ]),
-            Rgb([0b10011111u8, 0b00101001u8, 0b11111001u8,]),
-        );
+        let mut pixel = Rgb([0b11101010u8, 0b00110001u8, 0b10101110u8]);
+        pixel_to_gray_code(&mut pixel);
+        assert_eq!(pixel, Rgb([0b10011111u8, 0b00101001u8, 0b11111001u8,]),);
     }
 
     #[test]
     fn test_pixel_to_binary_code() {
-        assert_eq!(
-            Rgb([0b11101010u8, 0b00110001u8, 0b10101110u8,]),
-            Rgb([
-                to_binary_code(0b10011111u8),
-                to_binary_code(0b00101001u8),
-                to_binary_code(0b11111001u8),
-            ]),
-        );
+        let mut pixel = Rgb([0b10011111u8, 0b00101001u8, 0b11111001u8]);
+        pixel_to_binary_code(&mut pixel);
+        assert_eq!(pixel, Rgb([0b11101010u8, 0b00110001u8, 0b10101110u8,]),);
     }
 }
