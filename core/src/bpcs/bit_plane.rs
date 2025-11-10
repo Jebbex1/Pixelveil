@@ -18,6 +18,22 @@ pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
     board
 }
 
+fn get_planes(mut bits: Vec<bool>) -> Vec<BitPlane> {
+    assert!(
+        bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) == 0,
+        "Tried to construct bit planes with remaining bits that don't fill up an entire plane."
+    );
+    let mut planes: Vec<BitPlane> = Vec::new();
+    while !bits.is_empty() {
+        let plane_bits: Vec<bool> = bits
+            .drain(0..(USIZE_PLANE_SIZE * USIZE_PLANE_SIZE))
+            .collect();
+        planes.push(BitPlane::from_bits(plane_bits.try_into().unwrap()));
+    }
+    planes
+}
+
+#[derive(Debug)]
 pub(crate) struct BitPlane {
     pub(crate) bits: [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE],
 }
@@ -58,7 +74,7 @@ impl BitPlane {
         p
     }
 
-    pub(crate) fn export(self) -> [u8; BYTES_PER_PLANE] {
+    pub(crate) fn export_to_bools(self) -> [bool; USIZE_PLANE_SIZE * USIZE_PLANE_SIZE] {
         let bits_flattened: [bool; USIZE_PLANE_SIZE * USIZE_PLANE_SIZE] = self
             .bits
             .into_iter()
@@ -66,6 +82,11 @@ impl BitPlane {
             .collect::<Vec<bool>>()
             .try_into()
             .unwrap();
+        bits_flattened
+    }
+
+    pub(crate) fn export_to_u8s(self) -> [u8; BYTES_PER_PLANE] {
+        let bits_flattened: [bool; USIZE_PLANE_SIZE * USIZE_PLANE_SIZE] = self.export_to_bools();
         let mut bytes = [0u8; BYTES_PER_PLANE];
         for i in 0..BYTES_PER_PLANE {
             bytes[i] = bits_to_byte(bits_flattened[i * 8..(i + 1) * 8].try_into().unwrap())
@@ -112,9 +133,10 @@ impl BitPlane {
 
 #[cfg(test)]
 mod tests {
+    use crate::bpcs::bit_plane::{
+        BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE, checkerboard, get_planes,
+    };
     use image::GenericImageView;
-
-    use crate::bpcs::bit_plane::{BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE, checkerboard};
 
     #[test]
     fn test_creation() {
@@ -203,13 +225,13 @@ mod tests {
     }
 
     #[test]
-    fn test_export() {
+    fn test_export_to_u8s() {
         let mut bits = [false; USIZE_PLANE_SIZE * USIZE_PLANE_SIZE];
         bits[1] = true;
         bits[10] = true;
 
         let p = BitPlane::from_bits(bits);
-        let bytes = p.export();
+        let bytes = p.export_to_u8s();
 
         assert_eq!(
             bytes,
@@ -224,5 +246,30 @@ mod tests {
                 0b00000000u8
             ]
         );
+    }
+
+    #[test]
+    fn test_get_planes() {
+        let block1 = vec![
+            false, true, false, false, false, false, true, false, false, false, false, false, true,
+            false, false, false, false, false, false, false, false, false, false, true, false,
+            true, false, false, false, true, false, false, false, false, false, false, false,
+            false, true, false, false, false, false, true, false, false, false, false, true, false,
+            false, false, false, false, false, false, false, false, false, false, false, true,
+            false, false,
+        ];
+        let block2 = vec![
+            false, true, false, false, false, true, true, false, false, false, false, false, false,
+            false, false, false, true, false, false, false, true, false, false, true, false, false,
+            false, true, false, false, false, false, true, false, true, false, false, true, false,
+            false, true, false, false, false, false, false, true, false, false, true, false, false,
+            true, false, false, true, false, false, false, false, false, false, true, false,
+        ];
+
+        let mut planes: Vec<BitPlane> = get_planes([block1.as_slice(), block2.as_slice()].concat())
+            .into_iter()
+            .collect();
+        assert_eq!(planes.remove(0).export_to_bools().to_vec(), block1);
+        assert_eq!(planes.remove(0).export_to_bools().to_vec(), block2);
     }
 }

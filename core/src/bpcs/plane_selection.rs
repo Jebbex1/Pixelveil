@@ -28,7 +28,7 @@ pub(crate) fn collect_accepted_planes(
     accepted_coords
 }
 
-fn select_n_random_planes<'a>(
+pub(crate) fn select_n_random_planes(
     coords_vec: &mut Vec<(u32, u32, u8, u8)>,
     rng_seed: [u8; 32],
     n: usize,
@@ -38,7 +38,7 @@ fn select_n_random_planes<'a>(
     &coords_vec[0..n]
 }
 
-fn select_n_accepted_planes(
+pub(crate) fn select_n_accepted_planes(
     source_image: &RgbImage,
     min_alpha: f64,
     rng_seed: [u8; 32],
