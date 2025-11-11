@@ -24,9 +24,9 @@ pub(crate) fn bits_to_u8(bits: [bool; 8]) -> u8 {
     byte
 }
 
-pub(crate) fn bits_to_u64(bits: [bool; 64]) -> u64 {
-    let mut num = 0u64;
-    for i in 0..64 {
+pub(crate) fn bits_to_u32(bits: [bool; 32]) -> u32 {
+    let mut num = 0u32;
+    for i in 0..32 {
         num <<= 1;
         if bits[i] {
             num |= 1;
