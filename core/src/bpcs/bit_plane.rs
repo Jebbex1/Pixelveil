@@ -1,4 +1,7 @@
-use crate::utils::bit_operations::{bits_to_byte, get_bit};
+use crate::{
+    bpcs::dynamic_prefix::fill_to_plane_size,
+    utils::bit_operations::{bits_to_u8, get_bit_from_u8},
+};
 use image::{GenericImageView, RgbImage, SubImage};
 
 pub(crate) const PLANE_SIZE: u32 = 8;
@@ -18,11 +21,9 @@ pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
     board
 }
 
-fn get_planes(mut bits: Vec<bool>) -> Vec<BitPlane> {
-    assert!(
-        bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) == 0,
-        "Tried to construct bit planes with remaining bits that don't fill up an entire plane."
-    );
+pub(crate) fn get_planes(mut bits: Vec<bool>) -> (Vec<BitPlane>, u64) {
+    let remnant_bit_number = (bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE)) as u64;
+    fill_to_plane_size(&mut bits);
     let mut planes: Vec<BitPlane> = Vec::new();
     while !bits.is_empty() {
         let plane_bits: Vec<bool> = bits
@@ -30,7 +31,7 @@ fn get_planes(mut bits: Vec<bool>) -> Vec<BitPlane> {
             .collect();
         planes.push(BitPlane::from_bits(plane_bits.try_into().unwrap()));
     }
-    planes
+    (planes, remnant_bit_number)
 }
 
 #[derive(Debug)]
@@ -58,7 +59,7 @@ impl BitPlane {
         for (x, y, pixel) in sub_image.pixels() {
             p.set_bit(
                 (x as usize, y as usize),
-                get_bit(pixel.0[channel as usize], bit_index),
+                get_bit_from_u8(pixel.0[channel as usize], bit_index),
             );
         }
         p
@@ -89,7 +90,7 @@ impl BitPlane {
         let bits_flattened: [bool; USIZE_PLANE_SIZE * USIZE_PLANE_SIZE] = self.export_to_bools();
         let mut bytes = [0u8; BYTES_PER_PLANE];
         for i in 0..BYTES_PER_PLANE {
-            bytes[i] = bits_to_byte(bits_flattened[i * 8..(i + 1) * 8].try_into().unwrap())
+            bytes[i] = bits_to_u8(bits_flattened[i * 8..(i + 1) * 8].try_into().unwrap())
         }
         bytes
     }
@@ -266,9 +267,8 @@ mod tests {
             true, false, false, true, false, false, false, false, false, false, true, false,
         ];
 
-        let mut planes: Vec<BitPlane> = get_planes([block1.as_slice(), block2.as_slice()].concat())
-            .into_iter()
-            .collect();
+        let (mut planes, _) = get_planes([block1.as_slice(), block2.as_slice()].concat());
+
         assert_eq!(planes.remove(0).export_to_bools().to_vec(), block1);
         assert_eq!(planes.remove(0).export_to_bools().to_vec(), block2);
     }

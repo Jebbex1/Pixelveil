@@ -1,4 +1,4 @@
-use crate::utils::bit_operations::{to_binary_code, to_gray_code};
+use crate::utils::bit_operations::{u8_to_binary_code, u8_to_gray_code};
 use image::{
     ImageError,
     ImageFormat::{Bmp, Gif, Png},
@@ -16,15 +16,15 @@ pub(crate) fn open_lossless_image_from_raw(raw_data: Vec<u8>) -> Result<RgbImage
 }
 
 pub(crate) fn pixel_to_gray_code(pixel: &mut Rgb<u8>) {
-    pixel.0[0] = to_gray_code(pixel.0[0]);
-    pixel.0[1] = to_gray_code(pixel.0[1]);
-    pixel.0[2] = to_gray_code(pixel.0[2]);
+    pixel.0[0] = u8_to_gray_code(pixel.0[0]);
+    pixel.0[1] = u8_to_gray_code(pixel.0[1]);
+    pixel.0[2] = u8_to_gray_code(pixel.0[2]);
 }
 
 pub(crate) fn pixel_to_binary_code(pixel: &mut Rgb<u8>) {
-    pixel.0[0] = to_binary_code(pixel.0[0]);
-    pixel.0[1] = to_binary_code(pixel.0[1]);
-    pixel.0[2] = to_binary_code(pixel.0[2]);
+    pixel.0[0] = u8_to_binary_code(pixel.0[0]);
+    pixel.0[1] = u8_to_binary_code(pixel.0[1]);
+    pixel.0[2] = u8_to_binary_code(pixel.0[2]);
 }
 
 pub(crate) fn image_to_gray_code(image: &mut RgbImage) {

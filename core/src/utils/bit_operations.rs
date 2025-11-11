@@ -1,7 +1,10 @@
 use std::{
     iter,
+    ops::{BitAnd, ShrAssign},
     str::{self, Utf8Error},
 };
+
+use num::{One, PrimInt, Unsigned, Zero};
 
 pub(crate) fn xor_bits(
     a: impl Iterator<Item = bool>,
@@ -10,7 +13,7 @@ pub(crate) fn xor_bits(
     a.zip(b).map(|(x, y)| x ^ y)
 }
 
-pub(crate) fn bits_to_byte(bits: [bool; 8]) -> u8 {
+pub(crate) fn bits_to_u8(bits: [bool; 8]) -> u8 {
     let mut byte = 0u8;
     for i in 0..8 {
         byte <<= 1;
@@ -19,6 +22,36 @@ pub(crate) fn bits_to_byte(bits: [bool; 8]) -> u8 {
         }
     }
     byte
+}
+
+pub(crate) fn bits_to_u64(bits: [bool; 64]) -> u64 {
+    let mut num = 0u64;
+    for i in 0..64 {
+        num <<= 1;
+        if bits[i] {
+            num |= 1;
+        }
+    }
+    num
+}
+
+pub(crate) fn unsigned_int_to_bits<T>(mut num: T) -> Vec<bool>
+where
+    T: Unsigned + PrimInt + PartialEq + BitAnd + ShrAssign + Zero + One,
+{
+    let bit_depth = std::mem::size_of::<T>() * 8;
+    let mut v: Vec<bool> = Vec::with_capacity(bit_depth);
+    while num != T::zero() {
+        let bit = (num & T::one()) == T::one();
+        v.insert(0, bit);
+        num >>= T::one();
+    }
+
+    while v.len() != bit_depth {
+        v.insert(0, false);
+    }
+
+    v
 }
 
 pub(crate) fn bits_to_bytes(mut bits: impl Iterator<Item = bool>) -> impl Iterator<Item = u8> {
@@ -47,24 +80,16 @@ pub(crate) fn bytes_to_utf8(v: &Vec<u8>) -> Result<&str, Utf8Error> {
     str::from_utf8(v)
 }
 
-pub(crate) fn get_bit(byte: u8, bit_index: u8) -> bool {
+pub(crate) fn get_bit_from_u8(byte: u8, bit_index: u8) -> bool {
     assert!(bit_index < 8);
     ((byte >> 7 - bit_index) & 1) != 0
 }
 
-pub(crate) fn get_bits(byte: u8) -> [bool; 8] {
-    let mut l = [false; 8];
-    for i in 0..8 {
-        l[i] = ((byte >> 7 - i) & 1) != 0;
-    }
-    l
-}
-
-pub(crate) fn to_gray_code(byte: u8) -> u8 {
+pub(crate) fn u8_to_gray_code(byte: u8) -> u8 {
     byte ^ (byte >> 1)
 }
 
-pub(crate) fn to_binary_code(byte: u8) -> u8 {
+pub(crate) fn u8_to_binary_code(byte: u8) -> u8 {
     let mut mask = byte;
     let mut binary = byte;
     while mask != 0 {
@@ -104,31 +129,58 @@ mod tests {
     #[test]
     fn test_get_bit() {
         let b1 = 0b01000000 as u8;
-        assert_eq!(get_bit(b1, 1), true)
-    }
-
-    #[test]
-    fn test_get_bits() {
-        let b1 = 0b01101011 as u8;
-        assert_eq!(
-            get_bits(b1),
-            [false, true, true, false, true, false, true, true]
-        )
+        assert_eq!(get_bit_from_u8(b1, 1), true)
     }
 
     #[test]
     fn test_to_gray_code() {
-        assert_eq!(0b0010u8, to_gray_code(0b0011u8)); // 3u8
-        assert_eq!(0b1100u8, to_gray_code(0b1000u8)); // 8u8
-        assert_eq!(0b1011u8, to_gray_code(0b1101u8)); // 13u8
-        assert_eq!(0b1000u8, to_gray_code(0b1111u8)); // 15u8
+        assert_eq!(0b0010u8, u8_to_gray_code(0b0011u8)); // 3u8
+        assert_eq!(0b1100u8, u8_to_gray_code(0b1000u8)); // 8u8
+        assert_eq!(0b1011u8, u8_to_gray_code(0b1101u8)); // 13u8
+        assert_eq!(0b1000u8, u8_to_gray_code(0b1111u8)); // 15u8
     }
 
     #[test]
     fn test_to_binary_code() {
-        assert_eq!(to_binary_code(0b0010u8), 0b0011u8); // 3u8
-        assert_eq!(to_binary_code(0b1100u8), 0b1000u8); // 8u8
-        assert_eq!(to_binary_code(0b1011u8), 0b1101u8); // 13u8
-        assert_eq!(to_binary_code(0b1000u8), 0b1111u8); // 15u8
+        assert_eq!(u8_to_binary_code(0b0010u8), 0b0011u8); // 3u8
+        assert_eq!(u8_to_binary_code(0b1100u8), 0b1000u8); // 8u8
+        assert_eq!(u8_to_binary_code(0b1011u8), 0b1101u8); // 13u8
+        assert_eq!(u8_to_binary_code(0b1000u8), 0b1111u8); // 15u8
+    }
+
+    #[test]
+    fn test_generic_unsigned_int_to_bits() {
+        let num: u8 = 235;
+        let bits: [bool; 8] = unsigned_int_to_bits(num).try_into().unwrap();
+        let expected = [true, true, true, false, true, false, true, true];
+        assert_eq!(bits, expected);
+
+        let num: u16 = 5274;
+        let bits: [bool; 16] = unsigned_int_to_bits(num).try_into().unwrap();
+        let expected = [
+            false, false, false, true, false, true, false, false, true, false, false, true, true,
+            false, true, false,
+        ];
+        assert_eq!(bits, expected);
+
+        let num: u32 = 1583765927;
+        let bits: [bool; 32] = unsigned_int_to_bits(num).try_into().unwrap();
+        let expected = [
+            false, true, false, true, true, true, true, false, false, true, true, false, false,
+            true, true, false, false, true, false, true, true, false, false, true, true, false,
+            true, false, false, true, true, true,
+        ];
+        assert_eq!(bits, expected);
+
+        let num: u64 = 837659277593756383;
+        let bits: [bool; 64] = unsigned_int_to_bits(num).try_into().unwrap();
+        let expected = [
+            false, false, false, false, true, false, true, true, true, false, false, true, true,
+            true, true, true, true, true, true, true, false, true, true, false, true, false, true,
+            false, true, true, false, false, true, true, false, false, false, false, true, true,
+            true, true, false, false, true, false, false, true, false, true, false, false, false,
+            false, true, false, true, true, false, true, true, true, true, true,
+        ];
+        assert_eq!(bits, expected);
     }
 }

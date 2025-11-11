@@ -32,10 +32,10 @@ pub(crate) fn select_n_random_planes(
     coords_vec: &mut Vec<(u32, u32, u8, u8)>,
     rng_seed: [u8; 32],
     n: usize,
-) -> &[(u32, u32, u8, u8)] {
+) -> Vec<(u32, u32, u8, u8)> {
     let mut rng = StdRng::from_seed(rng_seed);
     coords_vec.shuffle(&mut rng);
-    &coords_vec[0..n]
+    coords_vec[0..n].to_vec()
 }
 
 pub(crate) fn select_n_accepted_planes(
@@ -46,5 +46,5 @@ pub(crate) fn select_n_accepted_planes(
 ) -> Vec<(u32, u32, u8, u8)> {
     let coords_set = collect_accepted_planes(source_image, min_alpha);
     let mut coords_vec: Vec<(u32, u32, u8, u8)> = coords_set.into_iter().collect();
-    select_n_random_planes(&mut coords_vec, rng_seed, n).to_vec()
+    select_n_random_planes(&mut coords_vec, rng_seed, n)
 }

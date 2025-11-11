@@ -1,6 +1,10 @@
 use crate::bpcs::bit_plane::{BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE};
 use rand::Rng;
 
+pub(crate) fn num_of_prefixed_planes_for_n_bits(n: usize, prefix_length: usize) -> usize {
+    (n as f64 / ((USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) - prefix_length) as f64).ceil() as usize
+}
+
 pub(crate) fn prefix_length(min_alpha: f64) -> usize {
     ((PLANE_SIZE * PLANE_SIZE) as f64 * ((1.4 * min_alpha) + 0.05)).ceil() as usize
 }
@@ -23,7 +27,11 @@ pub(crate) fn fill_to_plane_size(bits: &mut Vec<bool>) {
     bits.extend(filler_bits.into_iter());
 }
 
-pub(crate) fn get_next_prefixed_plane(bits: &mut Vec<bool>, min_alpha: f64, prefix_length: usize) -> BitPlane {
+pub(crate) fn get_next_prefixed_plane(
+    bits: &mut Vec<bool>,
+    min_alpha: f64,
+    prefix_length: usize,
+) -> BitPlane {
     assert!(
         bits.len() >= (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) - prefix_length,
         "Tried to construct block with an insufficient amount of bits to fill up a prefixed block."
@@ -41,7 +49,7 @@ pub(crate) fn get_next_prefixed_plane(bits: &mut Vec<bool>, min_alpha: f64, pref
     }
 }
 
-fn get_prefixed_planes(mut bits: Vec<bool>, min_alpha: f64) -> Vec<BitPlane> {
+pub(crate) fn get_prefixed_planes(mut bits: Vec<bool>, min_alpha: f64) -> Vec<BitPlane> {
     let prefix_length = prefix_length(min_alpha);
     let mut planes: Vec<BitPlane> = Vec::new();
     while !bits.is_empty() {
@@ -50,7 +58,7 @@ fn get_prefixed_planes(mut bits: Vec<bool>, min_alpha: f64) -> Vec<BitPlane> {
     planes
 }
 
-fn data_bits_from_prefixed_planes(planes: Vec<BitPlane>, min_alpha: f64) -> Vec<bool> {
+pub(crate) fn data_bits_from_prefixed_planes(planes: Vec<BitPlane>, min_alpha: f64) -> Vec<bool> {
     let prefix_length = prefix_length(min_alpha);
     let mut data: Vec<bool> = Vec::new();
     for plane in planes {
@@ -79,5 +87,12 @@ mod tests {
         let planes = get_prefixed_planes(bits.clone(), min_alpha);
         let data = data_bits_from_prefixed_planes(planes, min_alpha);
         assert_eq!(data, bits);
+    }
+
+    #[test]
+    fn test_num_of_prefixed_planes_for_n_bits() {
+        assert_eq!(num_of_prefixed_planes_for_n_bits(128, 0), 2);
+        assert_eq!(num_of_prefixed_planes_for_n_bits(40, 24), 1);
+        assert_eq!(num_of_prefixed_planes_for_n_bits(79, 31), 3);
     }
 }
