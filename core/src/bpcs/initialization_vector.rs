@@ -36,11 +36,17 @@ pub(crate) fn build_iv_planes(
     iv_planes
 }
 
-pub(crate) fn build_conjugation_map_planes(conjugation_map: Vec<bool>, min_alpha: f64) -> Vec<BitPlane> {
+pub(crate) fn build_conjugation_map_planes(
+    conjugation_map: Vec<bool>,
+    min_alpha: f64,
+) -> Vec<BitPlane> {
     get_prefixed_planes(conjugation_map, min_alpha)
 }
 
-pub(crate) fn drain_iv_data_from_accepted_planes(planes: &mut Vec<BitPlane>, min_alpha: f64) -> (u32, u32) {
+pub(crate) fn drain_iv_data_from_accepted_planes(
+    planes: &mut Vec<BitPlane>,
+    min_alpha: f64,
+) -> (u32, u32) {
     let prefix_length = prefix_length(min_alpha);
     let msg_len_iv_plane_length = num_of_prefixed_planes_for_n_bits(32, prefix_length);
     let msg_rem_iv_plane_length = num_of_prefixed_planes_for_n_bits(32, prefix_length);
@@ -104,9 +110,14 @@ mod tests {
         let message_plane_length = 47u32;
         let min_alpha = 0.3f64;
         let conjugation_map = get_n_random_bools(message_plane_length as usize);
-        let mut conjugation_map_planes = build_conjugation_map_planes(conjugation_map.clone(), min_alpha);
+        let mut conjugation_map_planes =
+            build_conjugation_map_planes(conjugation_map.clone(), min_alpha);
         assert_eq!(
-            drain_conjugation_map_from_accepted_planes(&mut conjugation_map_planes, min_alpha, message_plane_length),
+            drain_conjugation_map_from_accepted_planes(
+                &mut conjugation_map_planes,
+                min_alpha,
+                message_plane_length
+            ),
             conjugation_map
         );
     }
