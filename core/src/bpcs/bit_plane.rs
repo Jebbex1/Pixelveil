@@ -204,7 +204,7 @@ mod tests {
 
     #[test]
     fn test_from_sub_image() -> Result<(), Box<dyn std::error::Error>> {
-        let img = image::open("tests/assets/test_img_1.png")?.to_rgb8();
+        let img = image::open("tests/assets/test_from_sub_image.png")?.to_rgb8();
         let sub_img = img.view(0, 0, PLANE_SIZE as u32, PLANE_SIZE as u32);
         let p = BitPlane::from_sub_image(sub_img, 1, 1);
         assert_eq!(p.bits, [[true; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE]);

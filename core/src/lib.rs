@@ -4,4 +4,5 @@
 extern crate itertools;
 
 pub(crate) mod bpcs;
+pub(crate) mod errors;
 pub(crate) mod utils;

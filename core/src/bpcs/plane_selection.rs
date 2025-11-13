@@ -1,6 +1,9 @@
-use crate::bpcs::{
-    bit_plane_iter::BitPlaneIter,
-    dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
+use crate::{
+    bpcs::{
+        bit_plane_iter::BitPlaneIter,
+        dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
+    },
+    errors::SteganographyError,
 };
 use image::RgbImage;
 use rand::{
@@ -35,6 +38,20 @@ pub(crate) fn collect_accepted_planes(
     accepted_coords
 }
 
+fn check_plane_number(
+    unselected_num: usize,
+    trying_to_select: usize,
+) -> Result<(), SteganographyError> {
+    if unselected_num < trying_to_select {
+        Err(SteganographyError::InsufficientCapacity(
+            unselected_num,
+            trying_to_select,
+        ))
+    } else {
+        Ok(())
+    }
+}
+
 pub(crate) struct AcceptedPlaneSelector {
     accepted_planes: Vec<(u32, u32, u8, u8)>,
     rng: StdRng,
@@ -49,7 +66,11 @@ impl AcceptedPlaneSelector {
     }
 
     // will be used for selection of planes for both iv and conj map planes
-    fn select_small_n_planes(&mut self, plane_number: usize) -> Vec<(u32, u32, u8, u8)> {
+    fn select_small_n_planes(
+        &mut self,
+        plane_number: usize,
+    ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
+        check_plane_number(self.accepted_planes.len(), plane_number)?;
         let mut selected_planes: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(plane_number);
         let selected_indexes =
             (0..self.accepted_planes.len()).choose_multiple(&mut self.rng, plane_number);
@@ -59,16 +80,23 @@ impl AcceptedPlaneSelector {
             selected_planes.push(p);
         }
 
-        selected_planes
+        Ok(selected_planes)
     }
 
     // will be used to select message planes only - so it is used once and only at the end
-    fn select_big_n_planes(mut self, plane_number: usize) -> Vec<(u32, u32, u8, u8)> {
+    fn select_big_n_planes(
+        mut self,
+        plane_number: usize,
+    ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
+        check_plane_number(self.accepted_planes.len(), plane_number)?;
         self.accepted_planes.shuffle(&mut self.rng);
-        self.accepted_planes[0..plane_number].to_vec()
+        Ok(self.accepted_planes[0..plane_number].to_vec())
     }
 
-    fn select_iv_planes(&mut self, min_alpha: f64) -> Vec<(u32, u32, u8, u8)> {
+    fn select_iv_planes(
+        &mut self,
+        min_alpha: f64,
+    ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
         let iv_plane_num = num_of_prefixed_planes_for_n_bits(64, prefix_length(min_alpha));
         self.select_small_n_planes(iv_plane_num)
     }
@@ -77,7 +105,7 @@ impl AcceptedPlaneSelector {
         &mut self,
         min_alpha: f64,
         message_plane_length: u32,
-    ) -> Vec<(u32, u32, u8, u8)> {
+    ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
         let conjugation_map_plane_num = num_of_prefixed_planes_for_n_bits(
             message_plane_length as usize,
             prefix_length(min_alpha),
@@ -88,7 +116,7 @@ impl AcceptedPlaneSelector {
     pub(crate) fn select_message_planes(
         self,
         message_plane_length: u32,
-    ) -> Vec<(u32, u32, u8, u8)> {
+    ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
         self.select_big_n_planes(message_plane_length as usize)
     }
 }
@@ -114,24 +142,48 @@ mod tests {
             randomization_seed,
         );
 
-        let iv_planes1 = selector1.select_iv_planes(min_alpha);
+        let iv_planes1 = selector1.select_iv_planes(min_alpha)?;
         let conj_map_planes1 =
-            selector1.select_conjugation_map_planes(min_alpha, message_plane_length);
-        let message_planes1 = selector1.select_message_planes(message_plane_length);
+            selector1.select_conjugation_map_planes(min_alpha, message_plane_length)?;
+        let message_planes1 = selector1.select_message_planes(message_plane_length)?;
 
         let mut selector2 = AcceptedPlaneSelector::new(
             accepted_planes.clone().into_iter().collect::<Vec<_>>(),
             randomization_seed,
         );
 
-        let iv_planes2 = selector2.select_iv_planes(min_alpha);
+        let iv_planes2 = selector2.select_iv_planes(min_alpha)?;
         let conj_map_planes2 =
-            selector2.select_conjugation_map_planes(min_alpha, message_plane_length);
-        let message_planes2 = selector2.select_message_planes(message_plane_length);
+            selector2.select_conjugation_map_planes(min_alpha, message_plane_length)?;
+        let message_planes2 = selector2.select_message_planes(message_plane_length)?;
 
         assert_eq!(iv_planes1, iv_planes2);
         assert_eq!(conj_map_planes1, conj_map_planes2);
         assert_eq!(message_planes1, message_planes2);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_failing_plane_selection() -> Result<(), Box<dyn std::error::Error>> {
+        let min_alpha = 0.2f64;
+        let message_plane_length = 40u32;
+        let accepted_planes = collect_accepted_planes(
+            &open("tests/assets/test_failing_plane_selection.png")?.to_rgb8(),
+            min_alpha,
+        );
+        let randomization_seed = [0u8; 32];
+
+        let mut selector = AcceptedPlaneSelector::new(
+            accepted_planes.into_iter().collect::<Vec<_>>(),
+            randomization_seed,
+        );
+        selector.select_iv_planes(min_alpha)?;
+        selector.select_conjugation_map_planes(min_alpha, message_plane_length)?;
+
+        // On this line the selector should have insufficient unselected planes.
+        let result = selector.select_message_planes(message_plane_length);
+        assert!(result.is_err());
 
         Ok(())
     }
