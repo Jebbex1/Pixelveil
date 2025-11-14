@@ -2,8 +2,9 @@ use crate::{
     bpcs::{
         bit_plane_iter::BitPlaneIter,
         dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
+        initialization_vector::{MESSAGE_LENGTH_IV_BIT_NUMBER, MESSAGE_REMNANT_IV_BIT_NUMBER},
     },
-    errors::SteganographyError,
+    errors::{SteganographyError, check_plane_number},
 };
 use image::RgbImage;
 use rand::{
@@ -38,20 +39,6 @@ pub(crate) fn collect_accepted_planes(
     accepted_coords
 }
 
-fn check_plane_number(
-    unselected_num: usize,
-    trying_to_select: usize,
-) -> Result<(), SteganographyError> {
-    if unselected_num < trying_to_select {
-        Err(SteganographyError::InsufficientCapacity(
-            unselected_num,
-            trying_to_select,
-        ))
-    } else {
-        Ok(())
-    }
-}
-
 pub(crate) struct AcceptedPlaneSelector {
     accepted_planes: Vec<(u32, u32, u8, u8)>,
     rng: StdRng,
@@ -70,7 +57,7 @@ impl AcceptedPlaneSelector {
         &mut self,
         plane_number: usize,
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-        check_plane_number(self.accepted_planes.len(), plane_number)?;
+        check_plane_number(plane_number, self.accepted_planes.len())?;
         let mut selected_planes: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(plane_number);
         let selected_indexes =
             (0..self.accepted_planes.len()).choose_multiple(&mut self.rng, plane_number);
@@ -88,7 +75,7 @@ impl AcceptedPlaneSelector {
         mut self,
         plane_number: usize,
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-        check_plane_number(self.accepted_planes.len(), plane_number)?;
+        check_plane_number(plane_number, self.accepted_planes.len())?;
         self.accepted_planes.shuffle(&mut self.rng);
         Ok(self.accepted_planes[0..plane_number].to_vec())
     }
@@ -97,7 +84,13 @@ impl AcceptedPlaneSelector {
         &mut self,
         min_alpha: f64,
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-        let iv_plane_num = num_of_prefixed_planes_for_n_bits(64, prefix_length(min_alpha));
+        let iv_plane_num = num_of_prefixed_planes_for_n_bits(
+            MESSAGE_LENGTH_IV_BIT_NUMBER,
+            prefix_length(min_alpha),
+        ) + num_of_prefixed_planes_for_n_bits(
+            MESSAGE_REMNANT_IV_BIT_NUMBER,
+            prefix_length(min_alpha),
+        );
         self.select_small_n_planes(iv_plane_num)
     }
 
