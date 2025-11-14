@@ -45,7 +45,10 @@ pub(crate) struct AcceptedPlaneSelector {
 }
 
 impl AcceptedPlaneSelector {
-    fn new(accepted_planes: Vec<(u32, u32, u8, u8)>, randomization_seed: [u8; 32]) -> Self {
+    pub(crate) fn new(
+        accepted_planes: Vec<(u32, u32, u8, u8)>,
+        randomization_seed: [u8; 32],
+    ) -> Self {
         AcceptedPlaneSelector {
             accepted_planes,
             rng: StdRng::from_seed(randomization_seed),
@@ -53,7 +56,7 @@ impl AcceptedPlaneSelector {
     }
 
     // will be used for selection of planes for both iv and conj map planes
-    fn select_small_n_planes(
+    pub(crate) fn select_small_n_planes(
         &mut self,
         plane_number: usize,
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
@@ -71,7 +74,7 @@ impl AcceptedPlaneSelector {
     }
 
     // will be used to select message planes only - so it is used once and only at the end
-    fn select_big_n_planes(
+    pub(crate) fn select_big_n_planes(
         mut self,
         plane_number: usize,
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
@@ -80,7 +83,7 @@ impl AcceptedPlaneSelector {
         Ok(self.accepted_planes[0..plane_number].to_vec())
     }
 
-    fn select_iv_planes(
+    pub(crate) fn select_iv_planes(
         &mut self,
         min_alpha: f64,
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
