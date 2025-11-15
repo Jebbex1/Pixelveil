@@ -31,13 +31,13 @@ pub(crate) fn pixel_to_binary_code(pixel: &mut Rgb<u8>) {
     pixel.0[2] = u8_to_binary_code(pixel.0[2]);
 }
 
-pub(crate) fn image_to_gray_code(image: &mut RgbImage) {
+pub fn image_to_gray_code(image: &mut RgbImage) {
     for pixel in image.pixels_mut() {
         pixel_to_gray_code(pixel);
     }
 }
 
-pub(crate) fn image_to_binary_code(image: &mut RgbImage) {
+pub fn image_to_binary_code(image: &mut RgbImage) {
     for pixel in image.pixels_mut() {
         pixel_to_binary_code(pixel);
     }

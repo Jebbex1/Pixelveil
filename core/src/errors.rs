@@ -4,7 +4,7 @@ use std::{
 };
 
 #[derive(Debug)]
-pub(crate) enum SteganographyError {
+pub enum SteganographyError {
     InsufficientPlaneNumber(usize, usize), // the number that was expected of the operation, the number there are
 }
 
