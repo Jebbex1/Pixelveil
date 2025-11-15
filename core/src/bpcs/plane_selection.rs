@@ -13,7 +13,6 @@ use rand::{
     rngs::StdRng,
     seq::{IteratorRandom, SliceRandom},
 };
-use std::collections::HashSet;
 
 pub(crate) fn count_accepted_planes(source_image: &RgbImage, min_alpha: f64) -> u64 {
     let plane_iter = BitPlaneIter::new(source_image);
@@ -29,12 +28,12 @@ pub(crate) fn count_accepted_planes(source_image: &RgbImage, min_alpha: f64) -> 
 pub(crate) fn collect_accepted_planes(
     source_image: &RgbImage,
     min_alpha: f64,
-) -> HashSet<(u32, u32, u8, u8)> {
+) -> Vec<(u32, u32, u8, u8)> {
     let plane_iter = BitPlaneIter::new(source_image);
-    let mut accepted_coords: HashSet<(u32, u32, u8, u8)> = HashSet::new();
+    let mut accepted_coords: Vec<(u32, u32, u8, u8)> = Vec::new();
     for (coords, plane) in plane_iter {
         if plane.alpha() >= min_alpha {
-            accepted_coords.insert((
+            accepted_coords.push((
                 coords.0 * PLANE_SIZE,
                 coords.1 * PLANE_SIZE,
                 coords.2,

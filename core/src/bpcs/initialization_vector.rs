@@ -52,8 +52,8 @@ pub(crate) fn build_conjugation_map_planes(
     get_prefixed_planes(conjugation_map, min_alpha)
 }
 
-pub(crate) fn drain_iv_data_from_accepted_planes(
-    planes: &mut Vec<BitPlane>,
+pub(crate) fn extract_iv_data_from_iv_planes(
+    mut planes: Vec<BitPlane>,
     min_alpha: f64,
 ) -> Result<(u32, u32), SteganographyError> {
     let minimum_plane_num = calculate_iv_plane_number(min_alpha);
@@ -84,8 +84,8 @@ pub(crate) fn drain_iv_data_from_accepted_planes(
     Ok((message_plane_length, message_remnant_length))
 }
 
-pub(crate) fn drain_conjugation_map_from_accepted_planes(
-    planes: &mut Vec<BitPlane>,
+pub(crate) fn extract_conj_map_data_from_conj_map_planes(
+    planes: Vec<BitPlane>,
     min_alpha: f64,
     message_plane_length: u32,
 ) -> Result<Vec<bool>, SteganographyError> {
@@ -94,12 +94,9 @@ pub(crate) fn drain_conjugation_map_from_accepted_planes(
 
     check_plane_number(conjugation_map_plane_length, planes.len())?;
 
-    let conjugation_map_data = data_bits_from_prefixed_planes(
-        planes.drain(0..conjugation_map_plane_length).collect(),
-        min_alpha,
-    )
-    .drain(0..message_plane_length as usize) // get only the bits of iv data, without the filling
-    .collect::<Vec<bool>>();
+    let conjugation_map_data = data_bits_from_prefixed_planes(planes, min_alpha)
+        .drain(0..message_plane_length as usize) // get only the bits of iv data, without the filling
+        .collect::<Vec<bool>>();
     Ok(conjugation_map_data)
 }
 
@@ -112,10 +109,10 @@ mod tests {
     #[test]
     fn test_circular_iv_generation_and_data_extraction() -> Result<(), Box<dyn std::error::Error>> {
         let (min_alpha, message_plane_length, remnant_bit_number) = (0.3, 65832, 4);
-        let mut iv_planes = build_iv_planes(min_alpha, message_plane_length, remnant_bit_number);
+        let iv_planes = build_iv_planes(min_alpha, message_plane_length, remnant_bit_number);
 
         assert_eq!(
-            drain_iv_data_from_accepted_planes(&mut iv_planes, min_alpha)?,
+            extract_iv_data_from_iv_planes(iv_planes, min_alpha)?,
             (message_plane_length, remnant_bit_number)
         );
 
@@ -128,11 +125,11 @@ mod tests {
         let message_plane_length = 47u32;
         let min_alpha = 0.3f64;
         let conjugation_map = get_n_random_bools(message_plane_length as usize);
-        let mut conjugation_map_planes =
+        let conjugation_map_planes =
             build_conjugation_map_planes(conjugation_map.clone(), min_alpha);
         assert_eq!(
-            drain_conjugation_map_from_accepted_planes(
-                &mut conjugation_map_planes,
+            extract_conj_map_data_from_conj_map_planes(
+                conjugation_map_planes,
                 min_alpha,
                 message_plane_length
             )?,
