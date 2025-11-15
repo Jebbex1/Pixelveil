@@ -1,5 +1,6 @@
 use crate::{
     bpcs::{
+        bit_plane::PLANE_SIZE,
         bit_plane_iter::BitPlaneIter,
         dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
         initialization_vector::{MESSAGE_LENGTH_IV_BIT_NUMBER, MESSAGE_REMNANT_IV_BIT_NUMBER},
@@ -33,7 +34,12 @@ pub(crate) fn collect_accepted_planes(
     let mut accepted_coords: HashSet<(u32, u32, u8, u8)> = HashSet::new();
     for (coords, plane) in plane_iter {
         if plane.alpha() >= min_alpha {
-            accepted_coords.insert(coords);
+            accepted_coords.insert((
+                coords.0 * PLANE_SIZE,
+                coords.1 * PLANE_SIZE,
+                coords.2,
+                coords.3,
+            ));
         }
     }
     accepted_coords
