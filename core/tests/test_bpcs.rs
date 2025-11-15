@@ -5,7 +5,7 @@ use pixelveil::{
 
 #[test]
 fn test_circular_bpcs() -> Result<(), Box<dyn std::error::Error>> {
-    let mut source_image = open_lossless_image_from_path("tests/assets/test_embed_1.png")?;
+    let mut source_image = open_lossless_image_from_path("tests/assets/test_circular_bpcs.png")?;
     let data = b"HELOOOOOOOOOOOOO";
     let min_alpha = 0.2f64;
     let rng_key = [42u8; 32];
