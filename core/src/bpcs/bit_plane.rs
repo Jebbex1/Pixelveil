@@ -1,8 +1,8 @@
 use crate::{
     bpcs::dynamic_prefix::fill_to_plane_size,
-    utils::bit_operations::{bits_to_u8, get_bit_from_u8},
+    utils::bit_operations::{bits_to_u8, get_bit_from_u8, unsigned_int_to_bits},
 };
-use image::{GenericImageView, RgbImage, SubImage};
+use image::{GenericImageView, Rgb, RgbImage, SubImage};
 
 pub(crate) const PLANE_SIZE: u32 = 8;
 pub(crate) const USIZE_PLANE_SIZE: usize = PLANE_SIZE as usize;
@@ -21,8 +21,8 @@ pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
     board
 }
 
-pub(crate) fn get_planes(mut bits: Vec<bool>) -> (Vec<BitPlane>, u64) {
-    let remnant_bit_number = (bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE)) as u64;
+pub(crate) fn get_planes_from_bits(mut bits: Vec<bool>) -> (Vec<BitPlane>, u32) {
+    let remnant_bit_number = (bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE)) as u32;
     fill_to_plane_size(&mut bits);
     let mut planes: Vec<BitPlane> = Vec::new();
     while !bits.is_empty() {
@@ -32,6 +32,32 @@ pub(crate) fn get_planes(mut bits: Vec<bool>) -> (Vec<BitPlane>, u64) {
         planes.push(BitPlane::from_bits(plane_bits.try_into().unwrap()));
     }
     (planes, remnant_bit_number)
+}
+
+pub(crate) fn get_planes_from_u8s(data: &[u8]) -> (Vec<BitPlane>, u32) {
+    let mut data_bits: Vec<bool> = Vec::with_capacity(data.len() * 8);
+    for byte in data {
+        data_bits.extend(unsigned_int_to_bits(*byte));
+    }
+    get_planes_from_bits(data_bits)
+}
+
+pub(crate) fn write_plane_at(image: &mut RgbImage, plane: BitPlane, coords: (u32, u32, u8, u8)) {
+    let sub_image = image.view(coords.0, coords.1, PLANE_SIZE, PLANE_SIZE);
+    let mut pixels: Vec<(u32, u32, Rgb<u8>)> =
+        Vec::with_capacity(USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
+    for (x, y, mut p) in sub_image.pixels() {
+        let mask = (1 << (7 - coords.3)) as u8;
+        if plane.bits[x as usize][y as usize] {
+            p.0[coords.2 as usize] |= mask;
+        } else {
+            p.0[coords.2 as usize] &= !mask;
+        }
+        pixels.push((x, y, p));
+    }
+    for (x, y, p) in pixels {
+        image.put_pixel(coords.0 + x, coords.1 + y, p);
+    }
 }
 
 #[derive(Debug)]
@@ -134,8 +160,15 @@ impl BitPlane {
 
 #[cfg(test)]
 mod tests {
-    use crate::bpcs::bit_plane::{
-        BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE, checkerboard, get_planes,
+    use crate::{
+        bpcs::{
+            bit_plane::{
+                BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE, checkerboard, get_planes_from_bits,
+                write_plane_at,
+            },
+            dynamic_prefix::get_n_random_bools,
+        },
+        utils::image_handling::open_lossless_image_from_path,
     };
     use image::GenericImageView;
 
@@ -267,9 +300,26 @@ mod tests {
             true, false, false, true, false, false, false, false, false, false, true, false,
         ];
 
-        let (mut planes, _) = get_planes([block1.as_slice(), block2.as_slice()].concat());
+        let (mut planes, _) = get_planes_from_bits([block1.as_slice(), block2.as_slice()].concat());
 
         assert_eq!(planes.remove(0).export_to_bools().to_vec(), block1);
         assert_eq!(planes.remove(0).export_to_bools().to_vec(), block2);
+    }
+
+    #[test]
+    fn test_write_plane_at() -> Result<(), Box<dyn std::error::Error>> {
+        let mut source_image =
+            open_lossless_image_from_path("tests/assets/test_write_plane_at.png")?;
+        let plane = BitPlane::from_bits(
+            get_n_random_bools(USIZE_PLANE_SIZE * USIZE_PLANE_SIZE)
+                .try_into()
+                .unwrap(),
+        );
+        let expected_bits = plane.bits.clone();
+        write_plane_at(&mut source_image, plane, (0, 0, 1, 3));
+        let new_bits =
+            BitPlane::from_sub_image(source_image.view(0, 0, PLANE_SIZE, PLANE_SIZE), 1, 3).bits;
+        assert_eq!(expected_bits, new_bits);
+        Ok(())
     }
 }
