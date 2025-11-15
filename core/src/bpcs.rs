@@ -78,26 +78,26 @@ pub fn embed_data(
 }
 
 pub fn extract_data(
-    source_image: &mut RgbImage,
+    mut source_image: RgbImage,
     min_alpha: f64,
     rng_key: [u8; 32],
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-    image_to_gray_code(source_image);
+    image_to_gray_code(&mut source_image);
     let mut selector = AcceptedPlaneSelector::new(
-        collect_accepted_planes(source_image, min_alpha)
+        collect_accepted_planes(&mut source_image, min_alpha)
             .into_iter()
             .collect_vec(),
         rng_key,
     );
 
     let iv_planes =
-        get_planes_from_image_and_coords(source_image, selector.select_iv_planes(min_alpha)?);
+        get_planes_from_image_and_coords(&mut source_image, selector.select_iv_planes(min_alpha)?);
 
     let (message_plane_length, message_remnant_length) =
         extract_iv_data_from_iv_planes(iv_planes, min_alpha)?;
 
     let conjugation_map_planes = get_planes_from_image_and_coords(
-        source_image,
+        &mut source_image,
         selector.select_conjugation_map_planes(min_alpha, message_plane_length)?,
     );
 
@@ -108,7 +108,7 @@ pub fn extract_data(
     )?;
 
     let message_planes = get_planes_from_image_and_coords(
-        source_image,
+        &mut source_image,
         selector.select_message_planes(message_plane_length)?,
     );
 

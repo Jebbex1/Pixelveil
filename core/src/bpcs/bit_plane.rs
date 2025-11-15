@@ -42,6 +42,19 @@ pub(crate) fn get_planes_from_u8s(data: &[u8]) -> (Vec<BitPlane>, u32) {
     get_planes_from_bits(data_bits)
 }
 
+pub(crate) fn get_planes_from_image_and_coords(
+    source_image: &RgbImage,
+    coords: Vec<(u32, u32, u8, u8)>,
+) -> Vec<BitPlane> {
+    let mut planes: Vec<BitPlane> = Vec::with_capacity(coords.len());
+    let mut sub_image = source_image.view(0, 0, PLANE_SIZE, PLANE_SIZE);
+    for (x, y, channel, bit_index) in coords {
+        sub_image.change_bounds(x, y, PLANE_SIZE, PLANE_SIZE);
+        planes.push(BitPlane::from_sub_image(sub_image, channel, bit_index));
+    }
+    planes
+}
+
 pub(crate) fn write_plane_at(image: &mut RgbImage, plane: BitPlane, coords: (u32, u32, u8, u8)) {
     let sub_image = image.view(coords.0, coords.1, PLANE_SIZE, PLANE_SIZE);
     let mut pixels: Vec<(u32, u32, Rgb<u8>)> =
