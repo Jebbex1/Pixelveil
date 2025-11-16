@@ -81,6 +81,13 @@ pub(crate) fn extract_iv_data_from_iv_planes(
 
     let message_remnant_length = bits_to_u32(remnant_iv_bits.try_into().unwrap());
 
+    if message_remnant_length > PLANE_SIZE * PLANE_SIZE {
+        let bits_per_plane = PLANE_SIZE * PLANE_SIZE;
+        return Err(SteganographyError::InvalidIVData(String::from(format!(
+            "Message remnant IV can't be more than the amount of bits per plane ({message_remnant_length} > {bits_per_plane})"
+        ))));
+    }
+
     Ok((message_plane_length, message_remnant_length))
 }
 

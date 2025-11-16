@@ -6,6 +6,7 @@ use std::{
 #[derive(Debug)]
 pub enum SteganographyError {
     InsufficientPlaneNumber(usize, usize), // the number that was expected of the operation, the number there are
+    InvalidIVData(String),                 // the explanation
 }
 
 impl Display for SteganographyError {
@@ -15,6 +16,12 @@ impl Display for SteganographyError {
                 write!(
                     f,
                     "Tried to do an operation that requires at least {expected} planes, got {got}"
+                )
+            }
+            Self::InvalidIVData(reason) => {
+                write!(
+                    f,
+                    "The extracted IV data is invalid: {reason}. This most probable cause are incorrect running parameters."
                 )
             }
         }
