@@ -118,7 +118,7 @@ pub fn extract_data(
 
     assert_eq!(conjugation_map.len(), message_planes.len());
 
-    let mut data: Vec<u8> = Vec::with_capacity(message_plane_length as usize * BYTES_PER_PLANE);
+    let mut data: Vec<u8> = Vec::with_capacity(message_plane_length * BYTES_PER_PLANE);
 
     for (is_conjugated, mut plane) in zip(conjugation_map, message_planes) {
         if is_conjugated {
@@ -127,8 +127,8 @@ pub fn extract_data(
         data.extend(plane.export_to_u8s());
     }
 
-    let final_length = ((message_plane_length as usize - 1) * BYTES_PER_PLANE)
-        + message_remnant_length as usize / 8;
+    let final_length = ((message_plane_length - 1) * BYTES_PER_PLANE)
+        + message_remnant_length / 8;
 
     Ok(data.drain(0..final_length).collect_vec())
 }

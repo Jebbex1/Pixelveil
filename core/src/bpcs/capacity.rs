@@ -14,7 +14,7 @@ pub(crate) fn calculate_num_of_embedding_planes(
     let conj_map_plane_num =
         num_of_prefixed_planes_for_n_bits(message_plane_length, prefix_length(min_alpha));
 
-    iv_plane_num + conj_map_plane_num + message_plane_length as usize
+    iv_plane_num + conj_map_plane_num + message_plane_length
 }
 
 pub(crate) fn check_capacity(

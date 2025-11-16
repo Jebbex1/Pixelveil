@@ -137,7 +137,7 @@ impl BitPlane {
 
     pub(crate) fn set_bit(&mut self, coords: (usize, usize), val: bool) {
         assert!(
-            coords.0 < PLANE_SIZE as usize && coords.1 < PLANE_SIZE as usize,
+            coords.0 < USIZE_PLANE_SIZE && coords.1 < USIZE_PLANE_SIZE,
             "Specified coords are out of bounds: coords: {coords:?}"
         );
         self.bits[coords.0][coords.1] = val;
@@ -252,7 +252,7 @@ mod tests {
     #[test]
     fn test_from_sub_image() -> Result<(), Box<dyn std::error::Error>> {
         let img = image::open("tests/assets/test_from_sub_image.png")?.to_rgb8();
-        let sub_img = img.view(0, 0, PLANE_SIZE as u32, PLANE_SIZE as u32);
+        let sub_img = img.view(0, 0, PLANE_SIZE, PLANE_SIZE);
         let p = BitPlane::from_sub_image(sub_img, 1, 1);
         assert_eq!(p.bits, [[true; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE]);
         Ok(())

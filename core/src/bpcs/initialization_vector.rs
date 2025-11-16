@@ -133,7 +133,7 @@ mod tests {
     -> Result<(), Box<dyn std::error::Error>> {
         let message_plane_length = 47usize;
         let min_alpha = 0.3f64;
-        let conjugation_map = get_n_random_bools(message_plane_length as usize);
+        let conjugation_map = get_n_random_bools(message_plane_length);
         let conjugation_map_planes =
             build_conjugation_map_planes(conjugation_map.clone(), min_alpha);
         assert_eq!(
