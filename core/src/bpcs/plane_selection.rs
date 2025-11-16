@@ -105,20 +105,18 @@ impl AcceptedPlaneSelector {
     pub(crate) fn select_conjugation_map_planes(
         &mut self,
         min_alpha: f64,
-        message_plane_length: u32,
+        message_plane_length: usize,
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-        let conjugation_map_plane_num = num_of_prefixed_planes_for_n_bits(
-            message_plane_length as usize,
-            prefix_length(min_alpha),
-        );
+        let conjugation_map_plane_num =
+            num_of_prefixed_planes_for_n_bits(message_plane_length, prefix_length(min_alpha));
         self.select_small_n_planes(conjugation_map_plane_num)
     }
 
     pub(crate) fn select_message_planes(
         self,
-        message_plane_length: u32,
+        message_plane_length: usize,
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-        self.select_big_n_planes(message_plane_length as usize)
+        self.select_big_n_planes(message_plane_length)
     }
 }
 
@@ -131,7 +129,7 @@ mod tests {
     #[test]
     fn test_deterministic_plane_selection() -> Result<(), Box<dyn std::error::Error>> {
         let min_alpha = 0.2f64;
-        let message_plane_length = 82u32;
+        let message_plane_length = 82usize;
         let accepted_planes = collect_accepted_planes(
             &open("tests/assets/test_deterministic_plane_selection.png")?.to_rgb8(),
             min_alpha,
@@ -168,7 +166,7 @@ mod tests {
     #[test]
     fn test_failing_plane_selection() -> Result<(), Box<dyn std::error::Error>> {
         let min_alpha = 0.2f64;
-        let message_plane_length = 40u32;
+        let message_plane_length = 40usize;
         let accepted_planes = collect_accepted_planes(
             &open("tests/assets/test_failing_plane_selection.png")?.to_rgb8(),
             min_alpha,

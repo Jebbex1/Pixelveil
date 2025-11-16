@@ -7,7 +7,8 @@ use image::{GenericImageView, Rgb, RgbImage, SubImage};
 pub(crate) const PLANE_SIZE: u32 = 8;
 pub(crate) const USIZE_PLANE_SIZE: usize = PLANE_SIZE as usize;
 pub(crate) const BYTES_PER_PLANE: usize = (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) / 8;
-const MAX_BIT_CHANGES: u32 = ((PLANE_SIZE - 1) * PLANE_SIZE) + ((PLANE_SIZE - 1) * PLANE_SIZE);
+const MAX_BIT_CHANGES: usize =
+    ((USIZE_PLANE_SIZE - 1) * USIZE_PLANE_SIZE) + ((USIZE_PLANE_SIZE - 1) * USIZE_PLANE_SIZE);
 
 pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
     let mut board = [[false; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE];
@@ -21,8 +22,8 @@ pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
     board
 }
 
-pub(crate) fn get_planes_from_bits(mut bits: Vec<bool>) -> (Vec<BitPlane>, u32) {
-    let remnant_bit_number = (bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE)) as u32;
+pub(crate) fn get_planes_from_bits(mut bits: Vec<bool>) -> (Vec<BitPlane>, usize) {
+    let remnant_bit_number = bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
     fill_to_plane_size(&mut bits);
     let mut planes: Vec<BitPlane> = Vec::new();
     while !bits.is_empty() {
@@ -34,7 +35,7 @@ pub(crate) fn get_planes_from_bits(mut bits: Vec<bool>) -> (Vec<BitPlane>, u32) 
     (planes, remnant_bit_number)
 }
 
-pub(crate) fn get_planes_from_u8s(data: &[u8]) -> (Vec<BitPlane>, u32) {
+pub(crate) fn get_planes_from_u8s(data: &[u8]) -> (Vec<BitPlane>, usize) {
     let mut data_bits: Vec<bool> = Vec::with_capacity(data.len() * 8);
     for byte in data {
         data_bits.extend(unsigned_int_to_bits(*byte));

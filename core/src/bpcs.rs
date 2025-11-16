@@ -38,7 +38,11 @@ pub fn embed_data(
     let accepted_planes_num = accepted_planes.len();
     let mut plane_selector = AcceptedPlaneSelector::new(accepted_planes, rng_key);
 
-    check_capacity(min_alpha, message_planes.len() as u32, accepted_planes_num)?;
+    check_capacity(
+        min_alpha,
+        message_planes.len().try_into().unwrap(),
+        accepted_planes_num,
+    )?;
 
     let mut conjugation_map: Vec<bool> = Vec::with_capacity(message_planes.len());
     for plane in &mut message_planes {
@@ -51,18 +55,18 @@ pub fn embed_data(
     }
 
     let iv_plane_coords = plane_selector.select_iv_planes(min_alpha)?;
-    let iv_planes = build_iv_planes(min_alpha, message_planes.len() as u32, remnant_bit_number);
+    let iv_planes = build_iv_planes(min_alpha, message_planes.len(), remnant_bit_number);
     assert_eq!(iv_plane_coords.len(), iv_planes.len());
     let iv_pairs = zip(iv_plane_coords, iv_planes);
 
     let conj_map_plane_coords =
-        plane_selector.select_conjugation_map_planes(min_alpha, message_planes.len() as u32)?;
+        plane_selector.select_conjugation_map_planes(min_alpha, message_planes.len())?;
     let conj_map_planes = build_conjugation_map_planes(conjugation_map, min_alpha);
 
     assert_eq!(conj_map_plane_coords.len(), conj_map_planes.len());
     let conj_map_pairs = zip(conj_map_plane_coords, conj_map_planes);
 
-    let message_plane_coords = plane_selector.select_message_planes(message_planes.len() as u32)?;
+    let message_plane_coords = plane_selector.select_message_planes(message_planes.len())?;
     assert_eq!(message_plane_coords.len(), message_planes.len());
     let message_pairs = zip(message_plane_coords, message_planes);
 
@@ -128,3 +132,5 @@ pub fn extract_data(
 
     Ok(data.drain(0..final_length).collect_vec())
 }
+
+pub fn calculate_maximum_capacity() {}

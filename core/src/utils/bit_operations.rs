@@ -1,6 +1,8 @@
 use num::{One, PrimInt, Unsigned, Zero};
 use std::ops::{BitAnd, ShrAssign};
 
+pub(crate) const USIZE_BIT_DEPTH: usize = std::mem::size_of::<usize>() * 8;
+
 pub(crate) fn bits_to_u8(bits: [bool; 8]) -> u8 {
     let mut byte = 0u8;
     for i in 0..8 {
@@ -12,9 +14,9 @@ pub(crate) fn bits_to_u8(bits: [bool; 8]) -> u8 {
     byte
 }
 
-pub(crate) fn bits_to_u32(bits: [bool; 32]) -> u32 {
-    let mut num = 0u32;
-    for i in 0..32 {
+pub(crate) fn bits_to_usize(bits: [bool; USIZE_BIT_DEPTH]) -> usize {
+    let mut num = 0usize;
+    for i in 0..USIZE_BIT_DEPTH {
         num <<= 1;
         if bits[i] {
             num |= 1;
