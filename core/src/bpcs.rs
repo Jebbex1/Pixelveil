@@ -8,14 +8,17 @@ pub(crate) mod plane_selection;
 use crate::{
     bpcs::{
         bit_plane::{
-            BYTES_PER_PLANE, get_planes_from_image_and_coords, get_planes_from_u8s, write_plane_at,
+            BYTES_PER_PLANE, USIZE_PLANE_SIZE, get_planes_from_image_and_coords,
+            get_planes_from_u8s, write_plane_at,
         },
         capacity::check_capacity,
+        dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
         initialization_vector::{
+            MESSAGE_LENGTH_IV_BIT_NUMBER, MESSAGE_REMNANT_IV_BIT_NUMBER,
             build_conjugation_map_planes, build_iv_planes,
             extract_conj_map_data_from_conj_map_planes, extract_iv_data_from_iv_planes,
         },
-        plane_selection::{AcceptedPlaneSelector, collect_accepted_planes},
+        plane_selection::{AcceptedPlaneSelector, collect_accepted_planes, count_accepted_planes},
     },
     utils::image_handling::{image_to_binary_code, image_to_gray_code},
 };
@@ -127,10 +130,22 @@ pub fn extract_data(
         data.extend(plane.export_to_u8s());
     }
 
-    let final_length = ((message_plane_length - 1) * BYTES_PER_PLANE)
-        + message_remnant_length / 8;
+    let final_length = ((message_plane_length - 1) * BYTES_PER_PLANE) + message_remnant_length / 8;
 
     Ok(data.drain(0..final_length).collect_vec())
 }
 
-pub fn calculate_maximum_capacity() {}
+pub fn estimate_maximum_capacity(source_image: &RgbImage, min_alpha: f64) -> u64 {
+    let accepted_plane_number = count_accepted_planes(source_image, min_alpha);
+    println!("{accepted_plane_number}");
+    let prefix_length = prefix_length(min_alpha);
+    let iv_planes_num =
+        (num_of_prefixed_planes_for_n_bits(MESSAGE_LENGTH_IV_BIT_NUMBER, prefix_length)
+            + num_of_prefixed_planes_for_n_bits(MESSAGE_REMNANT_IV_BIT_NUMBER, prefix_length))
+            as u64;
+
+    ((accepted_plane_number - 2 - iv_planes_num) as f64
+        / (1.0 + (1 / ((USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) - prefix_length)) as f64))
+        .floor() as u64
+        * (BYTES_PER_PLANE as u64)
+}
