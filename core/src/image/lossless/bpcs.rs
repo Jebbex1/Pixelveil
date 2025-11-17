@@ -6,7 +6,7 @@ pub(crate) mod initialization_vector;
 pub(crate) mod plane_selection;
 
 use crate::{
-    bpcs::{
+    image::lossless::bpcs::{
         bit_plane::{
             BYTES_PER_PLANE, USIZE_PLANE_SIZE, get_planes_from_image_and_coords,
             get_planes_from_u8s, write_plane_at,
@@ -49,7 +49,7 @@ pub fn embed_data(
 
     let mut conjugation_map: Vec<bool> = Vec::with_capacity(message_planes.len());
     for plane in &mut message_planes {
-        if plane.alpha() < min_alpha {
+        if plane.alpha() < 0.5 {
             plane.conjugate();
             conjugation_map.push(true);
         } else {
@@ -137,7 +137,6 @@ pub fn extract_data(
 
 pub fn estimate_maximum_capacity(source_image: &RgbImage, min_alpha: f64) -> u64 {
     let accepted_plane_number = count_accepted_planes(source_image, min_alpha);
-    println!("{accepted_plane_number}");
     let prefix_length = prefix_length(min_alpha);
     let iv_planes_num =
         (num_of_prefixed_planes_for_n_bits(MESSAGE_LENGTH_IV_BIT_NUMBER, prefix_length)

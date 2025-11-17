@@ -1,4 +1,4 @@
-use crate::bpcs::bit_plane::{BitPlane, PLANE_SIZE};
+use crate::image::lossless::bpcs::bit_plane::{BitPlane, PLANE_SIZE};
 use image::{GenericImageView, RgbImage, SubImage};
 
 pub(crate) struct BitPlaneIter<'a> {

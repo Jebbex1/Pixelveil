@@ -1,12 +1,12 @@
 use crate::{
-    bpcs::{
+    errors::{SteganographyError, check_plane_number},
+    image::lossless::bpcs::{
         bit_plane::{BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE},
         dynamic_prefix::{
             data_bits_from_prefixed_planes, get_prefixed_planes, num_of_prefixed_planes_for_n_bits,
             prefix_length,
         },
     },
-    errors::{SteganographyError, check_plane_number},
     utils::bit_operations::{USIZE_BIT_DEPTH, bits_to_usize, unsigned_int_to_bits},
 };
 
@@ -111,9 +111,8 @@ pub(crate) fn extract_conj_map_data_from_conj_map_planes(
 
 #[cfg(test)]
 mod tests {
-    use crate::bpcs::dynamic_prefix::get_n_random_bools;
-
     use super::*;
+    use crate::image::lossless::bpcs::dynamic_prefix::get_n_random_bools;
 
     #[test]
     fn test_circular_iv_generation_and_data_extraction() -> Result<(), Box<dyn std::error::Error>> {

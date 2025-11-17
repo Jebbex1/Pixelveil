@@ -1,11 +1,11 @@
 use crate::{
-    bpcs::{
+    errors::{SteganographyError, check_plane_number},
+    image::lossless::bpcs::{
         bit_plane::PLANE_SIZE,
         bit_plane_iter::BitPlaneIter,
         dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
         initialization_vector::{MESSAGE_LENGTH_IV_BIT_NUMBER, MESSAGE_REMNANT_IV_BIT_NUMBER},
     },
-    errors::{SteganographyError, check_plane_number},
 };
 use image::RgbImage;
 use rand::{
@@ -122,9 +122,8 @@ impl AcceptedPlaneSelector {
 
 #[cfg(test)]
 mod tests {
-    use image::open;
-
     use super::*;
+    use image::open;
 
     #[test]
     fn test_deterministic_plane_selection() -> Result<(), Box<dyn std::error::Error>> {

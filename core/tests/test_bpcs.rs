@@ -1,5 +1,5 @@
 use pixelveil::{
-    bpcs::{embed_data, extract_data},
+    image::lossless::bpcs::{embed_data, extract_data},
     utils::image_handling::open_lossless_image_from_path,
 };
 

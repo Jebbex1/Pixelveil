@@ -1,9 +1,9 @@
 use crate::{
-    bpcs::{
+    errors::SteganographyError,
+    image::lossless::bpcs::{
         dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
         initialization_vector::calculate_iv_plane_number,
     },
-    errors::SteganographyError,
 };
 
 pub(crate) fn calculate_num_of_embedding_planes(

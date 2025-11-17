@@ -1,5 +1,5 @@
 use crate::{
-    bpcs::dynamic_prefix::fill_to_plane_size,
+    image::lossless::bpcs::dynamic_prefix::fill_to_plane_size,
     utils::bit_operations::{bits_to_u8, get_bit_from_u8, unsigned_int_to_bits},
 };
 use image::{GenericImageView, Rgb, RgbImage, SubImage};
@@ -174,14 +174,9 @@ impl BitPlane {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::{
-        bpcs::{
-            bit_plane::{
-                BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE, checkerboard, get_planes_from_bits,
-                write_plane_at,
-            },
-            dynamic_prefix::get_n_random_bools,
-        },
+        image::lossless::bpcs::dynamic_prefix::get_n_random_bools,
         utils::image_handling::open_lossless_image_from_path,
     };
     use image::GenericImageView;

@@ -1,4 +1,4 @@
-use crate::bpcs::bit_plane::{BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE};
+use crate::image::lossless::bpcs::bit_plane::{BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE};
 use rand::Rng;
 
 pub(crate) fn num_of_prefixed_planes_for_n_bits(n: usize, prefix_length: usize) -> usize {
