@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-
 use crate::{
     errors::{SteganographyError, check_plane_number},
     image::lossless::bpcs::{
@@ -157,24 +156,26 @@ impl PlaneSelector {
 }
 
 #[cfg(test)]
-mod tests1 {
+mod tests {
     use image::open;
 
     use super::*;
 
     #[test]
-    fn test_deterministic_plane1() -> Result<(), Box<dyn std::error::Error>> {
-        let min_alpha = 0.2f64;
+    fn test_deterministic_plane_selection() -> Result<(), Box<dyn std::error::Error>> {
+        let min_alpha: f64 = 0.2f64;
+        let randomization_seed = [0u8; 32];
         let message_plane_length = 82usize;
-        let (accepted_planes, accepted_num) = collect_accepted_planes(
-            &open("tests/assets/test_deterministic_plane_selection.png")?.to_rgb8(),
+        let image_path = "tests/assets/test_deterministic_plane_selection.png";
+        
+        let (accepted_planes1, accepted_num1) = collect_accepted_planes(
+            &open(image_path)?.to_rgb8(),
             min_alpha,
         );
-        let randomization_seed = [0u8; 32];
 
         let mut selector1 = PlaneSelector::new(
-            accepted_planes.clone(),
-            accepted_num,
+            accepted_planes1,
+            accepted_num1,
             randomization_seed,
         );
 
@@ -183,9 +184,14 @@ mod tests1 {
             selector1.select_conjugation_map_planes(min_alpha, message_plane_length)?;
         let message_planes1 = selector1.select_message_planes(message_plane_length)?;
 
+        let (accepted_planes2, accepted_num2) = collect_accepted_planes(
+            &open(image_path)?.to_rgb8(),
+            min_alpha,
+        );
+
         let mut selector2 = PlaneSelector::new(
-            accepted_planes.clone(),
-            accepted_num,
+            accepted_planes2,
+            accepted_num2,
             randomization_seed,
         );
 
