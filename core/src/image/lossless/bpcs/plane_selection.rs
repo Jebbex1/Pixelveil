@@ -1,7 +1,8 @@
+use std::collections::HashMap;
+
 use crate::{
     errors::{SteganographyError, check_plane_number},
     image::lossless::bpcs::{
-        bit_plane::PLANE_SIZE,
         bit_plane_iter::BitPlaneIter,
         dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
         initialization_vector::{MESSAGE_LENGTH_IV_BIT_NUMBER, MESSAGE_REMNANT_IV_BIT_NUMBER},
@@ -13,8 +14,6 @@ use rand::{
     rngs::StdRng,
     seq::{IteratorRandom, SliceRandom},
 };
-use rand_distr::{Distribution, weighted::WeightedIndex};
-use statrs::distribution::{Continuous, Normal};
 
 pub(crate) fn count_accepted_planes(source_image: &RgbImage, min_alpha: f64) -> u64 {
     let plane_iter = BitPlaneIter::new(source_image);
@@ -30,63 +29,99 @@ pub(crate) fn count_accepted_planes(source_image: &RgbImage, min_alpha: f64) -> 
 pub(crate) fn collect_accepted_planes(
     source_image: &RgbImage,
     min_alpha: f64,
-) -> Vec<(u32, u32, u8, u8)> {
+) -> (HashMap<u8, Vec<(u32, u32, u8, u8)>>, usize) {
+    let mut plane_map: HashMap<u8, Vec<(u32, u32, u8, u8)>> = HashMap::new();
+
+    for i in 0..8 {
+        plane_map.insert(i, Vec::new());
+    }
+
+    let mut accepted_count = 0usize;
+
     let plane_iter = BitPlaneIter::new(source_image);
-    let mut accepted_coords: Vec<(u32, u32, u8, u8)> = Vec::new();
-    for (coords, plane) in plane_iter {
+    for ((x, y, channel, bit_index), plane) in plane_iter {
         if plane.alpha() >= min_alpha {
-            accepted_coords.push((
-                coords.0 * PLANE_SIZE,
-                coords.1 * PLANE_SIZE,
-                coords.2,
-                coords.3,
-            ));
+            plane_map.get_mut(&bit_index).unwrap().push((x, y, channel, bit_index));
+            accepted_count += 1;            
         }
     }
-    accepted_coords
+    (plane_map, accepted_count)
 }
 
-const NORMAL_DIST_MEAN: f64 = 9.0;
-const NORMAL_DIST_STD_DEV: f64 = 2.6;
+pub(crate) fn select_n_planes(
+    source_planes: &mut Vec<(u32, u32, u8, u8)>,
+    plane_number: usize,
+    rng: &mut StdRng
+) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
+    check_plane_number(plane_number, source_planes.len())?;
+    let mut selected_planes: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(plane_number);
+    let mut selected_indexes =
+        (0..source_planes.len()).choose_multiple(rng, plane_number);
 
-pub(crate) struct WeightedPlaneSelector {
-    accepted_planes: Vec<(u32, u32, u8, u8)>,
-    weights: Vec<f64>,
+    selected_indexes.sort();
+    selected_indexes.reverse();
+
+    for i in selected_indexes {
+        let p = source_planes.swap_remove(i);
+        selected_planes.push(p);
+    }
+
+    selected_planes.shuffle(rng);
+
+    Ok(selected_planes)
+}
+
+pub(crate) struct PlaneSelector {
+    plane_map: HashMap<u8, Vec<(u32, u32, u8, u8)>>,
+    plane_count: usize,
     rng: StdRng,
 }
 
-impl WeightedPlaneSelector {
+impl PlaneSelector {
     pub(crate) fn new(
-        accepted_planes: Vec<(u32, u32, u8, u8)>,
+        plane_map: HashMap<u8, Vec<(u32, u32, u8, u8)>>,
+        plane_count: usize,
         randomization_seed: [u8; 32],
     ) -> Self {
-        let dist = Normal::new(NORMAL_DIST_MEAN, NORMAL_DIST_STD_DEV).unwrap();
-
-        let pdfs: Vec<f64> = accepted_planes.iter().map(|&(_, _, _, bit_index)| dist.pdf(1.0 + bit_index as f64)).collect();
-
-        WeightedPlaneSelector {
-            accepted_planes,
-            weights: pdfs,
+        PlaneSelector {
+            plane_map,
+            plane_count,
             rng: StdRng::from_seed(randomization_seed),
         }
     }
 
     pub(crate) fn select_n_planes(&mut self, n: usize) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-        if n > self.accepted_planes.len() {
-            return Err(SteganographyError::InsufficientPlaneNumber(n, self.accepted_planes.len()))
+        if n > self.plane_count {
+            return Err(SteganographyError::InsufficientPlaneNumber(n, self.plane_count))
         }
 
-        let mut selected: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(n);
+        let mut unselected_num = n;
+        let mut total_selected: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(n);
 
-        for _ in 0..n {
-            let dist = WeightedIndex::new(&*self.weights).unwrap();
-            let selected_index = dist.sample(&mut self.rng);
+        for bit_index in (0..8).rev() {
 
-            selected.push(self.accepted_planes.swap_remove(selected_index));
-            self.weights.swap_remove(selected_index);
+            let bit_index_i_planes: &mut Vec<(u32, u32, u8, u8)> = self.plane_map.get_mut(&bit_index).unwrap();
+            let bit_index_i_planes_num = bit_index_i_planes.len();
+
+            if unselected_num > bit_index_i_planes_num {                
+                total_selected.extend(&*bit_index_i_planes);
+                unselected_num -= bit_index_i_planes_num;
+
+                bit_index_i_planes.clear();
+            } else {                
+                let selected_randomly = select_n_planes(bit_index_i_planes, unselected_num, &mut self.rng)?;
+                unselected_num -= selected_randomly.len();
+                total_selected.extend(selected_randomly);
+
+                break;
+            }
         }
 
-        Ok(selected)
+        assert_eq!(unselected_num, 0);
+
+        self.plane_count -= n;
+        total_selected.shuffle(&mut self.rng);
+        Ok(total_selected)
     }
 
     pub(crate) fn select_iv_planes(
@@ -122,22 +157,24 @@ impl WeightedPlaneSelector {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+mod tests1 {
     use image::open;
 
+    use super::*;
+
     #[test]
-    fn test_deterministic_plane_selection() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_deterministic_plane1() -> Result<(), Box<dyn std::error::Error>> {
         let min_alpha = 0.2f64;
         let message_plane_length = 82usize;
-        let accepted_planes = collect_accepted_planes(
+        let (accepted_planes, accepted_num) = collect_accepted_planes(
             &open("tests/assets/test_deterministic_plane_selection.png")?.to_rgb8(),
             min_alpha,
         );
         let randomization_seed = [0u8; 32];
 
-        let mut selector1 = WeightedPlaneSelector::new(
-            accepted_planes.clone().into_iter().collect::<Vec<_>>(),
+        let mut selector1 = PlaneSelector::new(
+            accepted_planes.clone(),
+            accepted_num,
             randomization_seed,
         );
 
@@ -146,8 +183,9 @@ mod tests {
             selector1.select_conjugation_map_planes(min_alpha, message_plane_length)?;
         let message_planes1 = selector1.select_message_planes(message_plane_length)?;
 
-        let mut selector2 = WeightedPlaneSelector::new(
-            accepted_planes.clone().into_iter().collect::<Vec<_>>(),
+        let mut selector2 = PlaneSelector::new(
+            accepted_planes.clone(),
+            accepted_num,
             randomization_seed,
         );
 
@@ -167,16 +205,11 @@ mod tests {
     fn test_failing_plane_selection() -> Result<(), Box<dyn std::error::Error>> {
         let min_alpha = 0.2f64;
         let message_plane_length = 40usize;
-        let accepted_planes = collect_accepted_planes(
-            &open("tests/assets/test_failing_plane_selection.png")?.to_rgb8(),
-            min_alpha,
-        );
         let randomization_seed = [0u8; 32];
 
-        let mut selector = WeightedPlaneSelector::new(
-            accepted_planes.into_iter().collect::<Vec<_>>(),
-            randomization_seed,
-        );
+        let (accepted_planes, accepted_num) = collect_accepted_planes(&open("tests/assets/test_failing_plane_selection.png")?.to_rgb8(), min_alpha);
+        let mut selector = PlaneSelector::new(accepted_planes, accepted_num, randomization_seed);
+
         selector.select_iv_planes(min_alpha)?;
         selector.select_conjugation_map_planes(min_alpha, message_plane_length)?;
 
