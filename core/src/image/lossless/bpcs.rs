@@ -21,7 +21,7 @@ use crate::{
         plane_selection::{PlaneSelector, collect_accepted_planes, count_accepted_planes},
     },
     utils::image_handling::{image_to_binary_code, image_to_gray_code},
-    };
+};
 use image::RgbImage;
 use itertools::Itertools;
 use std::iter::zip;

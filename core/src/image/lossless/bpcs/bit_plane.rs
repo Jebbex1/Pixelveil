@@ -23,7 +23,12 @@ pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
 }
 
 pub(crate) fn get_planes_from_bits(mut bits: Vec<bool>) -> (Vec<BitPlane>, usize) {
-    let remnant_bit_number = bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
+    let mut remnant_bit_number = bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
+    remnant_bit_number = if remnant_bit_number == 0 {
+        USIZE_PLANE_SIZE * USIZE_PLANE_SIZE
+    } else {
+        remnant_bit_number
+    };
     fill_to_plane_size(&mut bits);
     let mut planes: Vec<BitPlane> = Vec::new();
     while !bits.is_empty() {
