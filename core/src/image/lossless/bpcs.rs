@@ -18,7 +18,7 @@ use crate::{
             build_conjugation_map_planes, build_iv_planes,
             extract_conj_map_data_from_conj_map_planes, extract_iv_data_from_iv_planes,
         },
-        plane_selection::{AcceptedPlaneSelector, collect_accepted_planes, count_accepted_planes},
+        plane_selection::{WeightedPlaneSelector, collect_accepted_planes, count_accepted_planes},
     },
     utils::image_handling::{image_to_binary_code, image_to_gray_code},
 };
@@ -39,7 +39,7 @@ pub fn embed_data(
         .into_iter()
         .collect_vec();
     let accepted_planes_num = accepted_planes.len();
-    let mut plane_selector = AcceptedPlaneSelector::new(accepted_planes, rng_key);
+    let mut plane_selector = WeightedPlaneSelector::new(accepted_planes, rng_key);
 
     check_capacity(
         min_alpha,
@@ -90,7 +90,7 @@ pub fn extract_data(
     rng_key: [u8; 32],
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     image_to_gray_code(&mut source_image);
-    let mut selector = AcceptedPlaneSelector::new(
+    let mut selector = WeightedPlaneSelector::new(
         collect_accepted_planes(&mut source_image, min_alpha)
             .into_iter()
             .collect_vec(),

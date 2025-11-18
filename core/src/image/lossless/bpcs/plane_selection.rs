@@ -13,6 +13,8 @@ use rand::{
     rngs::StdRng,
     seq::{IteratorRandom, SliceRandom},
 };
+use rand_distr::{Distribution, weighted::WeightedIndex};
+use statrs::distribution::{Continuous, Normal};
 
 pub(crate) fn count_accepted_planes(source_image: &RgbImage, min_alpha: f64) -> u64 {
     let plane_iter = BitPlaneIter::new(source_image);
@@ -44,53 +46,47 @@ pub(crate) fn collect_accepted_planes(
     accepted_coords
 }
 
-pub(crate) struct AcceptedPlaneSelector {
+const NORMAL_DIST_MEAN: f64 = 9.0;
+const NORMAL_DIST_STD_DEV: f64 = 2.6;
+
+pub(crate) struct WeightedPlaneSelector {
     accepted_planes: Vec<(u32, u32, u8, u8)>,
+    weights: Vec<f64>,
     rng: StdRng,
 }
 
-impl AcceptedPlaneSelector {
+impl WeightedPlaneSelector {
     pub(crate) fn new(
         accepted_planes: Vec<(u32, u32, u8, u8)>,
         randomization_seed: [u8; 32],
     ) -> Self {
-        AcceptedPlaneSelector {
+        let dist = Normal::new(NORMAL_DIST_MEAN, NORMAL_DIST_STD_DEV).unwrap();
+
+        let pdfs: Vec<f64> = accepted_planes.iter().map(|&(_, _, _, bit_index)| dist.pdf(1.0 + bit_index as f64)).collect();
+
+        WeightedPlaneSelector {
             accepted_planes,
+            weights: pdfs,
             rng: StdRng::from_seed(randomization_seed),
         }
     }
 
-    // will be used for selection of planes for both iv and conj map planes
-    pub(crate) fn select_small_n_planes(
-        &mut self,
-        plane_number: usize,
-    ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-        check_plane_number(plane_number, self.accepted_planes.len())?;
-        let mut selected_planes: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(plane_number);
-        let mut selected_indexes =
-            (0..self.accepted_planes.len()).choose_multiple(&mut self.rng, plane_number);
-
-        selected_indexes.sort();
-        selected_indexes.reverse();
-
-        for i in selected_indexes {
-            let p = self.accepted_planes.swap_remove(i);
-            selected_planes.push(p);
+    pub(crate) fn select_n_planes(&mut self, n: usize) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
+        if n > self.accepted_planes.len() {
+            return Err(SteganographyError::InsufficientPlaneNumber(n, self.accepted_planes.len()))
         }
 
-        selected_planes.shuffle(&mut self.rng);
+        let mut selected: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(n);
 
-        Ok(selected_planes)
-    }
+        for _ in 0..n {
+            let dist = WeightedIndex::new(&*self.weights).unwrap();
+            let selected_index = dist.sample(&mut self.rng);
 
-    // will be used to select message planes only - so it is used once and only at the end
-    pub(crate) fn select_big_n_planes(
-        mut self,
-        plane_number: usize,
-    ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-        check_plane_number(plane_number, self.accepted_planes.len())?;
-        self.accepted_planes.shuffle(&mut self.rng);
-        Ok(self.accepted_planes[0..plane_number].to_vec())
+            selected.push(self.accepted_planes.swap_remove(selected_index));
+            self.weights.swap_remove(selected_index);
+        }
+
+        Ok(selected)
     }
 
     pub(crate) fn select_iv_planes(
@@ -104,7 +100,7 @@ impl AcceptedPlaneSelector {
             MESSAGE_REMNANT_IV_BIT_NUMBER,
             prefix_length(min_alpha),
         );
-        self.select_small_n_planes(iv_plane_num)
+        self.select_n_planes(iv_plane_num)
     }
 
     pub(crate) fn select_conjugation_map_planes(
@@ -114,14 +110,14 @@ impl AcceptedPlaneSelector {
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
         let conjugation_map_plane_num =
             num_of_prefixed_planes_for_n_bits(message_plane_length, prefix_length(min_alpha));
-        self.select_small_n_planes(conjugation_map_plane_num)
+        self.select_n_planes(conjugation_map_plane_num)
     }
 
     pub(crate) fn select_message_planes(
-        self,
+        &mut self,
         message_plane_length: usize,
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-        self.select_big_n_planes(message_plane_length)
+        self.select_n_planes(message_plane_length)
     }
 }
 
@@ -140,7 +136,7 @@ mod tests {
         );
         let randomization_seed = [0u8; 32];
 
-        let mut selector1 = AcceptedPlaneSelector::new(
+        let mut selector1 = WeightedPlaneSelector::new(
             accepted_planes.clone().into_iter().collect::<Vec<_>>(),
             randomization_seed,
         );
@@ -150,7 +146,7 @@ mod tests {
             selector1.select_conjugation_map_planes(min_alpha, message_plane_length)?;
         let message_planes1 = selector1.select_message_planes(message_plane_length)?;
 
-        let mut selector2 = AcceptedPlaneSelector::new(
+        let mut selector2 = WeightedPlaneSelector::new(
             accepted_planes.clone().into_iter().collect::<Vec<_>>(),
             randomization_seed,
         );
@@ -177,7 +173,7 @@ mod tests {
         );
         let randomization_seed = [0u8; 32];
 
-        let mut selector = AcceptedPlaneSelector::new(
+        let mut selector = WeightedPlaneSelector::new(
             accepted_planes.into_iter().collect::<Vec<_>>(),
             randomization_seed,
         );
