@@ -67,13 +67,18 @@ impl AcceptedPlaneSelector {
     ) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
         check_plane_number(plane_number, self.accepted_planes.len())?;
         let mut selected_planes: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(plane_number);
-        let selected_indexes =
+        let mut selected_indexes =
             (0..self.accepted_planes.len()).choose_multiple(&mut self.rng, plane_number);
+
+        selected_indexes.sort();
+        selected_indexes.reverse();
 
         for i in selected_indexes {
             let p = self.accepted_planes.swap_remove(i);
             selected_planes.push(p);
         }
+
+        selected_planes.shuffle(&mut self.rng);
 
         Ok(selected_planes)
     }
