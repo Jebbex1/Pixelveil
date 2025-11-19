@@ -39,11 +39,7 @@ pub fn embed_data(
     let (accepted_planes, accepted_num) = collect_accepted_planes(source_image, min_alpha);
     let mut plane_selector = PlaneSelector::new(accepted_planes, accepted_num, rng_key);
 
-    check_capacity(
-        min_alpha,
-        message_planes.len().try_into().unwrap(),
-        accepted_num,
-    )?;
+    check_capacity(min_alpha, message_planes.len(), accepted_num)?;
 
     let mut conjugation_map: Vec<bool> = Vec::with_capacity(message_planes.len());
     for plane in &mut message_planes {

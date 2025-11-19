@@ -37,8 +37,9 @@ pub(crate) fn build_iv_planes(
         build_message_length_iv(message_plane_length),
         min_alpha,
     ));
+
     iv_planes.extend(get_prefixed_planes(
-        build_message_remnant_iv(remnant_bit_number.try_into().unwrap()),
+        build_message_remnant_iv(remnant_bit_number),
         min_alpha,
     ));
 
