@@ -18,7 +18,7 @@ use crate::{
             build_conjugation_map_planes, build_iv_planes,
             extract_conj_map_data_from_conj_map_planes, extract_iv_data_from_iv_planes,
         },
-        plane_selection::{AcceptedPlaneSelector, collect_accepted_planes, count_accepted_planes},
+        plane_selection::{PlaneSelector, collect_accepted_planes, count_accepted_planes},
     },
     utils::image_handling::{image_to_binary_code, image_to_gray_code},
 };
@@ -35,17 +35,11 @@ pub fn embed_data(
     image_to_gray_code(source_image);
 
     let (mut message_planes, remnant_bit_number) = get_planes_from_u8s(data);
-    let accepted_planes: Vec<(u32, u32, u8, u8)> = collect_accepted_planes(source_image, min_alpha)
-        .into_iter()
-        .collect_vec();
-    let accepted_planes_num = accepted_planes.len();
-    let mut plane_selector = AcceptedPlaneSelector::new(accepted_planes, rng_key);
 
-    check_capacity(
-        min_alpha,
-        message_planes.len().try_into().unwrap(),
-        accepted_planes_num,
-    )?;
+    let (accepted_planes, accepted_num) = collect_accepted_planes(source_image, min_alpha);
+    let mut plane_selector = PlaneSelector::new(accepted_planes, accepted_num, rng_key);
+
+    check_capacity(min_alpha, message_planes.len(), accepted_num)?;
 
     let mut conjugation_map: Vec<bool> = Vec::with_capacity(message_planes.len());
     for plane in &mut message_planes {
@@ -90,12 +84,9 @@ pub fn extract_data(
     rng_key: [u8; 32],
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     image_to_gray_code(&mut source_image);
-    let mut selector = AcceptedPlaneSelector::new(
-        collect_accepted_planes(&mut source_image, min_alpha)
-            .into_iter()
-            .collect_vec(),
-        rng_key,
-    );
+
+    let (accepted_planes, accepted_num) = collect_accepted_planes(&mut source_image, min_alpha);
+    let mut selector = PlaneSelector::new(accepted_planes, accepted_num, rng_key);
 
     let iv_planes =
         get_planes_from_image_and_coords(&mut source_image, selector.select_iv_planes(min_alpha)?);

@@ -19,12 +19,11 @@ pub(crate) fn get_n_random_bools(n: usize) -> Vec<bool> {
 }
 
 pub(crate) fn fill_to_plane_size(bits: &mut Vec<bool>) {
-    let remainder = (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE)
-        - (bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE));
+    let remainder = bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
     if remainder == 0 {
         return;
     }
-    let filler_bits = get_n_random_bools(remainder);
+    let filler_bits = get_n_random_bools((USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) - (remainder));
     bits.extend(filler_bits);
 }
 

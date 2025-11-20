@@ -23,7 +23,12 @@ pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
 }
 
 pub(crate) fn get_planes_from_bits(mut bits: Vec<bool>) -> (Vec<BitPlane>, usize) {
-    let remnant_bit_number = bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
+    let mut remnant_bit_number = bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
+    remnant_bit_number = if remnant_bit_number == 0 {
+        USIZE_PLANE_SIZE * USIZE_PLANE_SIZE
+    } else {
+        remnant_bit_number
+    };
     fill_to_plane_size(&mut bits);
     let mut planes: Vec<BitPlane> = Vec::new();
     while !bits.is_empty() {
@@ -40,6 +45,7 @@ pub(crate) fn get_planes_from_u8s(data: &[u8]) -> (Vec<BitPlane>, usize) {
     for byte in data {
         data_bits.extend(unsigned_int_to_bits(*byte));
     }
+
     get_planes_from_bits(data_bits)
 }
 
@@ -292,27 +298,20 @@ mod tests {
     }
 
     #[test]
-    fn test_get_planes() {
-        let block1 = vec![
-            false, true, false, false, false, false, true, false, false, false, false, false, true,
-            false, false, false, false, false, false, false, false, false, false, true, false,
-            true, false, false, false, true, false, false, false, false, false, false, false,
-            false, true, false, false, false, false, true, false, false, false, false, true, false,
-            false, false, false, false, false, false, false, false, false, false, false, true,
-            false, false,
-        ];
-        let block2 = vec![
-            false, true, false, false, false, true, true, false, false, false, false, false, false,
-            false, false, false, true, false, false, false, true, false, false, true, false, false,
-            false, true, false, false, false, false, true, false, true, false, false, true, false,
-            false, true, false, false, false, false, false, true, false, false, true, false, false,
-            true, false, false, true, false, false, false, false, false, false, true, false,
-        ];
+    fn test_get_planes_from_u8s() {
+        let data = b"HELOOOOOOOOOOOOO";
+        let (planes, remnant_length) = get_planes_from_u8s(data);
+        let mut u8_data: Vec<u8> = Vec::new();
 
-        let (mut planes, _) = get_planes_from_bits([block1.as_slice(), block2.as_slice()].concat());
+        for p in planes {
+            u8_data.extend(p.export_to_u8s());
+        }
 
-        assert_eq!(planes.remove(0).export_to_bools().to_vec(), block1);
-        assert_eq!(planes.remove(0).export_to_bools().to_vec(), block2);
+        let got_data = String::from_utf8(u8_data).unwrap();
+
+        assert_eq!(String::from_utf8(data.to_vec()).unwrap(), got_data);
+
+        assert_eq!(remnant_length, 64);
     }
 
     #[test]
