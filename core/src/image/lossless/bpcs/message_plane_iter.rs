@@ -1,9 +1,8 @@
-use rand::{Rng, rng};
-
 use crate::{
     image::lossless::bpcs::bit_plane::{BYTES_PER_PLANE, BitPlane},
     utils::bit_operations::unsigned_int_to_bits,
 };
+use rand::{Rng, rng};
 
 pub(crate) fn get_bytes_per_plane_u8s<'a, T>(iter: &'a mut T) -> Option<Vec<u8>>
 where
