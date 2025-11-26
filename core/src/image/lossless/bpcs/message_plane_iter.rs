@@ -5,12 +5,11 @@ use crate::{
     utils::bit_operations::unsigned_int_to_bits,
 };
 
-pub(crate) fn get_bytes_per_plane_u8s<'a, T>(iter: &'a mut T) -> Option<(Vec<u8>, usize)>
+pub(crate) fn get_bytes_per_plane_u8s<'a, T>(iter: &'a mut T) -> Option<Vec<u8>>
 where
     T: Iterator<Item = u8>,
 {
     let mut u8s: Vec<u8> = Vec::with_capacity(BYTES_PER_PLANE);
-    let mut num_of_data_bytes = 0usize;
 
     for _ in 0..BYTES_PER_PLANE {
         // if the next item is found, push it.
@@ -18,7 +17,6 @@ where
         // if not, return None
         if let Some(next) = iter.next() {
             u8s.push(next);
-            num_of_data_bytes += 1;
         } else {
             if u8s.is_empty() {
                 return None;
@@ -28,7 +26,7 @@ where
         }
     }
 
-    Some((u8s, num_of_data_bytes))
+    Some(u8s)
 }
 
 pub(crate) struct MessagePlanesIter<'a, T>
@@ -36,19 +34,17 @@ where
     T: Iterator<Item = u8>,
 {
     pub(crate) message_byte_iter: &'a mut T,
-    pub(crate) message_plane_length: usize,
-    pub(crate) message_remnant_bit_number: usize,
+    pub(crate) conjugation_map: &'a mut Vec<bool>,
 }
 
 impl<'a, T> MessagePlanesIter<'a, T>
 where
     T: Iterator<Item = u8>,
 {
-    pub(crate) fn new(bytes_iter: &'a mut T) -> Self {
+    pub(crate) fn new(message_byte_iter: &'a mut T, conjugation_map: &'a mut Vec<bool>) -> Self {
         MessagePlanesIter {
-            message_byte_iter: bytes_iter,
-            message_remnant_bit_number: 0,
-            message_plane_length: 0,
+            message_byte_iter,
+            conjugation_map,
         }
     }
 }
@@ -59,16 +55,23 @@ where
 {
     type Item = BitPlane;
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((plane_u8s, num_of_data_bytes)) = get_bytes_per_plane_u8s(self.message_byte_iter) {
-            self.message_plane_length += 1;
-            self.message_remnant_bit_number = num_of_data_bytes * 8;
-            
+        if let Some(plane_u8s) = get_bytes_per_plane_u8s(self.message_byte_iter) {
             // get bits
             let mut data_bits: Vec<bool> = Vec::with_capacity(plane_u8s.len() * 8);
             for byte in plane_u8s {
                 data_bits.extend(unsigned_int_to_bits(byte));
             }
-            Some(BitPlane::from_bits(data_bits.try_into().unwrap()))
+
+            let mut plane = BitPlane::from_bits(data_bits.try_into().unwrap());
+
+            if plane.alpha() < 0.5 {
+                plane.conjugate();
+                self.conjugation_map.push(true);
+            } else {
+                self.conjugation_map.push(false);
+            }
+
+            Some(plane)
         } else {
             None
         }
@@ -81,6 +84,8 @@ mod tests {
 
     #[test]
     fn test_message_plane_iter_consistency() {
+        let mut conj_map: Vec<bool> = Vec::with_capacity(8 * 9);
+
         let mut bytes = vec![
             0b00000000u8,
             0b00100000u8,
@@ -94,9 +99,10 @@ mod tests {
         ]
         .into_iter();
 
-        let mut plane_iter = MessagePlanesIter::new(&mut bytes);
+        let mut plane_iter = MessagePlanesIter::new(&mut bytes, &mut conj_map);
 
-        let next = plane_iter.next().unwrap();
+        let mut next = plane_iter.next().unwrap();
+        next.conjugate(); // next is supposed to be automatically conjugated on the .next(), so we conjugate it again to get the original data
         assert_eq!(
             next.bits,
             [
@@ -120,7 +126,6 @@ mod tests {
         let next = plane_iter.next();
         assert!(next.is_none());
 
-        assert_eq!(plane_iter.message_plane_length, 2);
-        assert_eq!(plane_iter.message_remnant_bit_number, 8);
+        assert_eq!(conj_map[0], true);
     }
 }
