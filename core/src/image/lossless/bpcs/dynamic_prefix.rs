@@ -18,15 +18,6 @@ pub(crate) fn get_n_random_bools(n: usize) -> Vec<bool> {
     bools
 }
 
-pub(crate) fn fill_to_plane_size(bits: &mut Vec<bool>) {
-    let remainder = bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
-    if remainder == 0 {
-        return;
-    }
-    let filler_bits = get_n_random_bools((USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) - (remainder));
-    bits.extend(filler_bits);
-}
-
 pub(crate) fn fill_to_prefixed_plane_size(bits: &mut Vec<bool>, min_alpha: f64) {
     let data_bits_per_plane = (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE) - prefix_length(min_alpha);
     let to_be_filled_length = data_bits_per_plane - (bits.len() % data_bits_per_plane);
@@ -82,13 +73,6 @@ pub(crate) fn data_bits_from_prefixed_planes(planes: Vec<BitPlane>, min_alpha: f
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fill_to_plane_size() {
-        let mut bits = vec![false; 40];
-        fill_to_plane_size(&mut bits);
-        assert_eq!(bits.len(), USIZE_PLANE_SIZE * USIZE_PLANE_SIZE)
-    }
 
     #[test]
     fn test_fill_to_prefixed_plane_size() {

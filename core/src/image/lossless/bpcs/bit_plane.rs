@@ -1,7 +1,4 @@
-use crate::{
-    image::lossless::bpcs::dynamic_prefix::fill_to_plane_size,
-    utils::bit_operations::{bits_to_u8, get_bit_from_u8, unsigned_int_to_bits},
-};
+use crate::utils::bit_operations::{bits_to_u8, get_bit_from_u8};
 use image::{GenericImageView, Rgb, RgbImage, SubImage};
 
 pub(crate) const PLANE_SIZE: u32 = 8;
@@ -20,33 +17,6 @@ pub(crate) fn checkerboard() -> [[bool; USIZE_PLANE_SIZE]; USIZE_PLANE_SIZE] {
     }
 
     board
-}
-
-pub(crate) fn get_planes_from_bits(mut bits: Vec<bool>) -> (Vec<BitPlane>, usize) {
-    let mut remnant_bit_number = bits.len() % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
-    remnant_bit_number = if remnant_bit_number == 0 {
-        USIZE_PLANE_SIZE * USIZE_PLANE_SIZE
-    } else {
-        remnant_bit_number
-    };
-    fill_to_plane_size(&mut bits);
-    let mut planes: Vec<BitPlane> = Vec::new();
-    while !bits.is_empty() {
-        let plane_bits: Vec<bool> = bits
-            .drain(0..(USIZE_PLANE_SIZE * USIZE_PLANE_SIZE))
-            .collect();
-        planes.push(BitPlane::from_bits(plane_bits.try_into().unwrap()));
-    }
-    (planes, remnant_bit_number)
-}
-
-pub(crate) fn get_planes_from_u8s(data: &[u8]) -> (Vec<BitPlane>, usize) {
-    let mut data_bits: Vec<bool> = Vec::with_capacity(data.len() * 8);
-    for byte in data {
-        data_bits.extend(unsigned_int_to_bits(*byte));
-    }
-
-    get_planes_from_bits(data_bits)
 }
 
 pub(crate) fn get_planes_from_image_and_coords(
@@ -295,23 +265,6 @@ mod tests {
                 0b00000000u8
             ]
         );
-    }
-
-    #[test]
-    fn test_get_planes_from_u8s() {
-        let data = b"HELOOOOOOOOOOOOO";
-        let (planes, remnant_length) = get_planes_from_u8s(data);
-        let mut u8_data: Vec<u8> = Vec::new();
-
-        for p in planes {
-            u8_data.extend(p.export_to_u8s());
-        }
-
-        let got_data = String::from_utf8(u8_data).unwrap();
-
-        assert_eq!(String::from_utf8(data.to_vec()).unwrap(), got_data);
-
-        assert_eq!(remnant_length, 64);
     }
 
     #[test]

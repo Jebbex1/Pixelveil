@@ -3,13 +3,13 @@ pub(crate) mod bit_plane_iter;
 pub(crate) mod capacity;
 pub(crate) mod dynamic_prefix;
 pub(crate) mod initialization_vector;
+pub(crate) mod message_plane_iter;
 pub(crate) mod plane_selection;
 
 use crate::{
     image::lossless::bpcs::{
         bit_plane::{
-            BYTES_PER_PLANE, USIZE_PLANE_SIZE, get_planes_from_image_and_coords,
-            get_planes_from_u8s, write_plane_at,
+            BYTES_PER_PLANE, USIZE_PLANE_SIZE, get_planes_from_image_and_coords, write_plane_at,
         },
         capacity::check_capacity,
         dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
@@ -18,6 +18,7 @@ use crate::{
             build_conjugation_map_planes, build_iv_planes,
             extract_conj_map_data_from_conj_map_planes, extract_iv_data_from_iv_planes,
         },
+        message_plane_iter::MessagePlanesIter,
         plane_selection::{PlaneSelector, collect_accepted_planes, count_accepted_planes},
     },
     utils::image_handling::{image_to_binary_code, image_to_gray_code},
@@ -28,48 +29,63 @@ use std::iter::zip;
 
 pub fn embed_data(
     source_image: &mut RgbImage,
-    data: &[u8],
+    data: &mut impl Iterator<Item = u8>,
+    data_length: usize,
     min_alpha: f64,
     rng_key: [u8; 32],
 ) -> Result<(), Box<dyn std::error::Error>> {
     image_to_gray_code(source_image);
 
-    let (mut message_planes, remnant_bit_number) = get_planes_from_u8s(data);
+    // calculate all the necessary values for the initialization vectors and such
+    let message_plane_length = (data_length as f64 / BYTES_PER_PLANE as f64).ceil() as usize;
+    let mut remnant_bit_number = (data_length * 8) % (USIZE_PLANE_SIZE * USIZE_PLANE_SIZE);
+    remnant_bit_number = if remnant_bit_number == 0 {
+        USIZE_PLANE_SIZE * USIZE_PLANE_SIZE
+    } else {
+        remnant_bit_number
+    };
 
+    // crate conjugation map
+    let mut conjugation_map: Vec<bool> = Vec::with_capacity(message_plane_length);
+
+    // patch the data iterator and conjugation map into the message plane iter
+    let message_plane_iter = MessagePlanesIter::new(data, &mut conjugation_map);
+
+    // collect the accepted planes and put them in a PRNG selector
     let (accepted_planes, accepted_num) = collect_accepted_planes(source_image, min_alpha);
     let mut plane_selector = PlaneSelector::new(accepted_planes, accepted_num, rng_key);
 
-    check_capacity(min_alpha, message_planes.len(), accepted_num)?;
+    // check the capacity
+    check_capacity(min_alpha, message_plane_length, accepted_num)?;
 
-    let mut conjugation_map: Vec<bool> = Vec::with_capacity(message_planes.len());
-    for plane in &mut message_planes {
-        if plane.alpha() < 0.5 {
-            plane.conjugate();
-            conjugation_map.push(true);
-        } else {
-            conjugation_map.push(false);
-        }
-    }
-
+    // select all planes
     let iv_plane_coords = plane_selector.select_iv_planes(min_alpha)?;
-    let iv_planes = build_iv_planes(min_alpha, message_planes.len(), remnant_bit_number);
+    let conj_map_plane_coords =
+        plane_selector.select_conjugation_map_planes(min_alpha, message_plane_length)?;
+    let message_plane_coords = plane_selector.select_message_planes(message_plane_length)?;
+
+    // embed IV
+    let iv_planes = build_iv_planes(min_alpha, message_plane_length, remnant_bit_number);
     assert_eq!(iv_plane_coords.len(), iv_planes.len());
     let iv_pairs = zip(iv_plane_coords, iv_planes);
 
-    let conj_map_plane_coords =
-        plane_selector.select_conjugation_map_planes(min_alpha, message_planes.len())?;
+    for (coords, plane) in iv_pairs {
+        write_plane_at(source_image, plane, coords);
+    }
+
+    // embed message (and by that we construct the conjugation map)
+    assert_eq!(message_plane_coords.len(), message_plane_length);
+    let message_pairs = zip(message_plane_coords, message_plane_iter);
+    for (coords, plane) in message_pairs {
+        write_plane_at(source_image, plane, coords);
+    }
+
+    // embed conjugation map
     let conj_map_planes = build_conjugation_map_planes(conjugation_map, min_alpha);
 
     assert_eq!(conj_map_plane_coords.len(), conj_map_planes.len());
     let conj_map_pairs = zip(conj_map_plane_coords, conj_map_planes);
-
-    let message_plane_coords = plane_selector.select_message_planes(message_planes.len())?;
-    assert_eq!(message_plane_coords.len(), message_planes.len());
-    let message_pairs = zip(message_plane_coords, message_planes);
-
-    let embedding_pairs = iv_pairs.chain(conj_map_pairs).chain(message_pairs);
-
-    for (coords, plane) in embedding_pairs {
+    for (coords, plane) in conj_map_pairs {
         write_plane_at(source_image, plane, coords);
     }
 
