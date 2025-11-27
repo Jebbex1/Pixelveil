@@ -41,30 +41,29 @@ pub(crate) fn collect_accepted_planes_at_bit_index(
     accepted_coords
 }
 
-// TODO: make this generic
-pub(crate) fn select_n_planes_from_vec(
-    source_planes: &mut Vec<(u32, u32, u8, u8)>,
-    plane_number: usize,
+pub(crate) fn drain_n_random_items_from_vec<T>(
+    items: &mut Vec<T>,
+    n: usize,
     rng: &mut StdRng,
-) -> Result<Vec<(u32, u32, u8, u8)>, SteganographyError> {
-    assert!(plane_number <= source_planes.len());
-    let mut selected_planes: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(plane_number);
-    let mut indexes = (0..source_planes.len()).collect_vec();
+) -> Vec<T> {
+    assert!(n <= items.len());
+    let mut selected_items: Vec<T> = Vec::with_capacity(n);
+    let mut selected_indexes = (0..items.len()).collect_vec();
 
-    indexes.shuffle(rng);
-    let mut selected_indexes = indexes[0..plane_number].to_vec();
+    selected_indexes.shuffle(rng);
+    let mut selected_indexes = selected_indexes[0..n].to_vec();
 
     selected_indexes.sort();
     selected_indexes.reverse();
 
     for i in selected_indexes {
-        let p = source_planes.swap_remove(i);
-        selected_planes.push(p);
+        let p = items.swap_remove(i);
+        selected_items.push(p);
     }
 
-    selected_planes.shuffle(rng);
+    selected_items.shuffle(rng);
 
-    Ok(selected_planes)
+    selected_items
 }
 
 pub(crate) struct PlaneSelector<'a> {
@@ -80,7 +79,8 @@ impl<'a> PlaneSelector<'a> {
         min_alpha: f64,
         randomization_seed: [u8; 32],
     ) -> Self {
-        // Generate empty map
+        // Generate empty map, if a value at a given bit index is None, it wasn't calculated yet. If it is Some(vec) then vec is a Vec that 
+        //  contains the remaining unselected bit planes at that bit index
         let mut plane_map: HashMap<u8, Option<Vec<(u32, u32, u8, u8)>>> = HashMap::with_capacity(8);
         for bit_index in 0u8..8u8 {
             plane_map.insert(bit_index, None);
@@ -102,7 +102,7 @@ impl<'a> PlaneSelector<'a> {
         let mut total_selected: Vec<(u32, u32, u8, u8)> = Vec::with_capacity(n);
 
         for bit_index in (0u8..8u8).rev() {
-            // if the current bit index accepted planes weren't mapped yet, get them
+            // if the current bit index accepted planes weren't mapped yet, get them and insert them as Some into the map
             match self.plane_map.get(&bit_index).unwrap() {
                 None => {
                     self.plane_map.insert(
@@ -117,6 +117,7 @@ impl<'a> PlaneSelector<'a> {
                 _ => {}
             }
 
+            // get the current bit index's remaining accepted bit planes
             let curr_bit_index_planes = self
                 .plane_map
                 .get_mut(&bit_index)
@@ -125,14 +126,19 @@ impl<'a> PlaneSelector<'a> {
                 .unwrap();
 
             if unselected_num < curr_bit_index_planes.len() {
-                let curr_bit_index_selected =
-                    select_n_planes_from_vec(curr_bit_index_planes, unselected_num, &mut self.rng)?;
+                // if the bit planes of this bit index are enough
+                let curr_bit_index_selected = drain_n_random_items_from_vec(
+                    curr_bit_index_planes,
+                    unselected_num,
+                    &mut self.rng,
+                );
 
                 unselected_num -= curr_bit_index_selected.len();
 
                 total_selected.extend(curr_bit_index_selected);
                 break;
             } else {
+                // if the bit planes of this bit index are not enough
                 unselected_num -= curr_bit_index_planes.len();
 
                 total_selected.extend(curr_bit_index_planes.drain(..));
@@ -187,7 +193,6 @@ impl<'a> PlaneSelector<'a> {
 #[cfg(test)]
 mod tests {
     use image::open;
-
     use super::*;
 
     #[test]

@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+#![allow(dead_code)] // this module might be useful later, so I'm keeping it in for now.
 
 use crate::{
     errors::SteganographyError,

@@ -117,9 +117,11 @@ mod tests {
         );
 
         let next = plane_iter.next().unwrap();
-        assert_eq!(
-            next.bits[0],
-            [false, false, true, true, true, true, false, true]
+        // the 2nd bit plane might have been conjugated, depending on how the bits were filled to fit a plane, so we need the
+        //  first row (the data bits) to be equal to either the regular or conjugated version of itself
+        assert!(
+            (next.bits[0] == [false, false, true, true, true, true, false, true])
+                ^ (next.bits[0] == [false, true, true, false, true, false, false, false])
         );
 
         let next = plane_iter.next();
