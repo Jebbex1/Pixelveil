@@ -11,7 +11,6 @@ use crate::{
         bit_plane::{
             BYTES_PER_PLANE, USIZE_PLANE_SIZE, get_planes_from_image_and_coords, write_plane_at,
         },
-        capacity::check_capacity,
         dynamic_prefix::{num_of_prefixed_planes_for_n_bits, prefix_length},
         initialization_vector::{
             MESSAGE_LENGTH_IV_BIT_NUMBER, MESSAGE_REMNANT_IV_BIT_NUMBER,
@@ -19,7 +18,7 @@ use crate::{
             extract_conj_map_data_from_conj_map_planes, extract_iv_data_from_iv_planes,
         },
         message_plane_iter::MessagePlanesIter,
-        plane_selection::{PlaneSelector, collect_accepted_planes, count_accepted_planes},
+        plane_selection::{PlaneSelector, count_accepted_planes},
     },
     utils::image_handling::{image_to_binary_code, image_to_gray_code},
 };
@@ -52,11 +51,7 @@ pub fn embed_data(
     let message_plane_iter = MessagePlanesIter::new(data, &mut conjugation_map);
 
     // collect the accepted planes and put them in a PRNG selector
-    let (accepted_planes, accepted_num) = collect_accepted_planes(source_image, min_alpha);
-    let mut plane_selector = PlaneSelector::new(accepted_planes, accepted_num, rng_key);
-
-    // check the capacity
-    check_capacity(min_alpha, message_plane_length, accepted_num)?;
+    let mut plane_selector = PlaneSelector::new(&source_image, min_alpha, rng_key);
 
     // select all planes
     let iv_plane_coords = plane_selector.select_iv_planes(min_alpha)?;
@@ -101,17 +96,16 @@ pub fn extract_data(
 ) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
     image_to_gray_code(&mut source_image);
 
-    let (accepted_planes, accepted_num) = collect_accepted_planes(&mut source_image, min_alpha);
-    let mut selector = PlaneSelector::new(accepted_planes, accepted_num, rng_key);
+    let mut selector = PlaneSelector::new(&source_image, min_alpha, rng_key);
 
     let iv_planes =
-        get_planes_from_image_and_coords(&mut source_image, selector.select_iv_planes(min_alpha)?);
+        get_planes_from_image_and_coords(&source_image, selector.select_iv_planes(min_alpha)?);
 
     let (message_plane_length, message_remnant_length) =
         extract_iv_data_from_iv_planes(iv_planes, min_alpha)?;
 
     let conjugation_map_planes = get_planes_from_image_and_coords(
-        &mut source_image,
+        &source_image,
         selector.select_conjugation_map_planes(min_alpha, message_plane_length)?,
     );
 
@@ -122,7 +116,7 @@ pub fn extract_data(
     )?;
 
     let message_planes = get_planes_from_image_and_coords(
-        &mut source_image,
+        &source_image,
         selector.select_message_planes(message_plane_length)?,
     );
 

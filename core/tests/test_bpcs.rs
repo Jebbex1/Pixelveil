@@ -1,11 +1,10 @@
-use std::{
-    io::{self, Read},
-    os::unix::fs::MetadataExt,
-};
-
 use pixelveil::{
     image::lossless::bpcs::{embed_data, extract_data},
     utils::image_handling::open_lossless_image_from_path,
+};
+use std::{
+    io::{self, Read},
+    os::unix::fs::MetadataExt,
 };
 
 #[test]
