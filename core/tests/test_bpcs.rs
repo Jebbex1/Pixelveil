@@ -1,7 +1,5 @@
-use pixelveil::{
-    image::lossless::bpcs::{embed_data, extract_data},
-    utils::image_handling::open_lossless_image_from_path,
-};
+use image::open;
+use pixelveil::image::lossless::bpcs::{embed_data, extract_data};
 use std::{
     io::{self, Read},
     os::unix::fs::MetadataExt,
@@ -12,7 +10,7 @@ fn test_circular_bpcs() -> Result<(), Box<dyn std::error::Error>> {
     let source_image_path = "tests/assets/test_circular_bpcs_vessel.png";
     let data_file_path = "tests/assets/test_circular_bpcs_data.png";
 
-    let mut source_image = open_lossless_image_from_path(source_image_path).unwrap();
+    let mut source_image = open(source_image_path).unwrap().to_rgb8();
 
     let data_file = std::fs::File::open(data_file_path).unwrap();
     let data_len = data_file.metadata().unwrap().size();

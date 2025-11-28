@@ -151,11 +151,8 @@ impl BitPlane {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        image::lossless::bpcs::dynamic_prefix::get_n_random_bools,
-        utils::image_handling::open_lossless_image_from_path,
-    };
-    use image::GenericImageView;
+    use crate::image::lossless::bpcs::dynamic_prefix::get_n_random_bools;
+    use image::{GenericImageView, open};
 
     #[test]
     fn test_creation() {
@@ -269,8 +266,7 @@ mod tests {
 
     #[test]
     fn test_write_plane_at() -> Result<(), Box<dyn std::error::Error>> {
-        let mut source_image =
-            open_lossless_image_from_path("tests/assets/test_write_plane_at.png")?;
+        let mut source_image = open("tests/assets/test_write_plane_at.png")?.to_rgb8();
         let plane = BitPlane::from_bits(
             get_n_random_bools(USIZE_PLANE_SIZE * USIZE_PLANE_SIZE)
                 .try_into()

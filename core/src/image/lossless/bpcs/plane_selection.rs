@@ -79,7 +79,7 @@ impl<'a> PlaneSelector<'a> {
         min_alpha: f64,
         randomization_seed: [u8; 32],
     ) -> Self {
-        // Generate empty map, if a value at a given bit index is None, it wasn't calculated yet. If it is Some(vec) then vec is a Vec that 
+        // Generate empty map, if a value at a given bit index is None, it wasn't calculated yet. If it is Some(vec) then vec is a Vec that
         //  contains the remaining unselected bit planes at that bit index
         let mut plane_map: HashMap<u8, Option<Vec<(u32, u32, u8, u8)>>> = HashMap::with_capacity(8);
         for bit_index in 0u8..8u8 {
@@ -192,8 +192,8 @@ impl<'a> PlaneSelector<'a> {
 
 #[cfg(test)]
 mod tests {
-    use image::open;
     use super::*;
+    use image::open;
 
     #[test]
     fn test_deterministic_plane_selection() -> Result<(), Box<dyn std::error::Error>> {

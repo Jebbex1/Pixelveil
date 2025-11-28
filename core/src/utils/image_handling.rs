@@ -1,21 +1,18 @@
 use crate::utils::bit_operations::{u8_to_binary_code, u8_to_gray_code};
 use image::{
     ImageError,
-    ImageFormat::{Bmp, Gif, Png},
     ImageReader, Rgb, RgbImage, open,
 };
 use std::io::Cursor;
 
-pub fn open_lossless_image_from_raw(raw_data: Vec<u8>) -> Result<RgbImage, ImageError> {
+pub fn open_rgbimage_from_raw(raw_data: Vec<u8>) -> Result<RgbImage, ImageError> {
     let cursor = Cursor::new(raw_data);
     let img = ImageReader::new(cursor).with_guessed_format()?;
-    let format = img.format().unwrap();
-    assert!(vec![Png, Bmp, Gif].contains(&format)); // make sure that the opened image is in a lossless format
 
     Ok(img.decode()?.to_rgb8())
 }
 
-pub fn open_lossless_image_from_path(path: &str) -> Result<RgbImage, ImageError> {
+pub fn open_rgbimage_from_path(path: &str) -> Result<RgbImage, ImageError> {
     Ok(open(path)?.to_rgb8())
 }
 
