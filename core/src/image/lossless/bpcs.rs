@@ -1,3 +1,8 @@
+//! All the functions to use BPCS (Bit Plane Complexity Segmentation) for embedding, extracting and estimating the
+//! capacity of an image.
+//!
+//! For a theoretical overview of basic BPCS steganography please read <https://www.researchgate.net/file.PostFileLoader.html?id=53b3b80cd5a3f216068b4643&assetKey=AS%3A273551540588545%401442231177391>.
+
 pub(crate) mod bit_plane;
 pub(crate) mod bit_plane_iter;
 pub(crate) mod capacity;
@@ -26,6 +31,47 @@ use image::RgbImage;
 use itertools::Itertools;
 use std::iter::zip;
 
+/// Embed data into an image using BPCS
+///
+/// # Example
+/// ```no_run
+/// use pixelveil::{bpcs::embed_data, image_utils::open_rgbimage_from_path};
+///
+/// let mut vessel_image = open_rgbimage_from_path("path_to_image.png").unwrap();
+/// let data: [u8; _] = [6, 9, 193, 7, 1, 7];
+/// let min_alpha = 0.3f64;
+/// let rng_key = [0u8; 32];
+///
+/// embed_data(
+///     &mut vessel_image,
+///     &mut data.into_iter(),
+///     data.len(),
+///     min_alpha,
+///     rng_key,
+/// ).unwrap();
+/// ```
+///
+/// # Arguments
+/// The function takes in five arguments:
+/// * `source_image: &mut RgbImage` A mutable reference to the source image.
+/// * `data: &mut impl Iterator<Item = u8>` An iterator that yields bytes (u8s), this is the data that is going to be
+/// embedded. This was chosen to be an iterator to mitigate the memory usage of large amounts of data.
+/// * `data_length: usize` The length of the data iterator, in bytes (the number of u8s). Must be the exact length
+/// of the `data` iterator.
+/// * `min_alpha: f64` The BPCS minimum complexity coefficient.
+/// * `rng_key: [u8; 32]` The randomization key, used for pseudo-random selection of where to change the source image.
+///
+/// # Errors
+/// The errors that can be returned are:
+/// * `SteganographyError::InsufficientPlaneNumber` if the image doesn't contain enough bit planes to store the
+/// inputted data.
+///
+/// # Returns
+/// Returns `Result<(), Box<dyn std::error::Error>>`, the source image will be modified instead of returning a new one.
+///
+/// # Notes
+/// For the best security, please use unique and original images and rng keys for each embedding operation as repeated
+/// usage of these can lead to many attacks.
 pub fn embed_data(
     source_image: &mut RgbImage,
     data: &mut impl Iterator<Item = u8>,
@@ -89,6 +135,37 @@ pub fn embed_data(
     Ok(())
 }
 
+/// Extract data from an image using BPCS
+///
+/// # Example
+/// ```no_run
+/// use pixelveil::{bpcs::extract_data, image_utils::open_rgbimage_from_path};
+///
+/// let mut vessel_image = open_rgbimage_from_path("path_to_image.png").unwrap();
+/// let min_alpha = 0.3f64;
+/// let rng_key = [0u8; 32];
+///
+/// let extracted_data = extract_data(
+///     vessel_image,
+///     min_alpha,
+///     rng_key,
+/// ).unwrap();
+/// ```
+///
+/// # Arguments
+/// The function takes in three arguments:
+/// * `mut source_image: RgbImage` - The image to extract data from.
+/// * `min_alpha: f64` The BPCS minimum complexity coefficient.
+/// * `rng_key: [u8; 32]` The randomization key, used for pseudo-random selection of where to change the source image.
+///
+/// # Errors
+/// The errors that can be returned are:
+/// * `SteganographyError::InvalidIVData` if the IV in the image contains invalid data. The most likely causes of this
+/// are trying to extract data from an image that doesn't have data hidden in it or incorrect parameters.
+///
+/// # Returns
+/// Returns `Result<i32, Box<Vec<u8> std::error::Error>>`. If `Ok(...)` is returned, the contained value is a vector of
+/// the extracted data bytes.
 pub fn extract_data(
     mut source_image: RgbImage,
     min_alpha: f64,

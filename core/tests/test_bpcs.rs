@@ -1,5 +1,5 @@
 use image::open;
-use pixelveil::image::lossless::bpcs::{embed_data, extract_data};
+use pixelveil::bpcs::{embed_data, extract_data};
 use std::{
     io::{self, Read},
     os::unix::fs::MetadataExt,

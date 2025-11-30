@@ -23,9 +23,9 @@ Each field in the doc comment should be used only if it applicable to the block 
 /// The `add` function panics if `num2` is equal to `11`.
 /// 
 /// # Errors
-/// An Error is returned if one or more of the following is true:
-/// * `num1 != 4`
-/// * `num2 > num1`
+/// The possible errors that can be returned are:
+/// * `error_type1` if ...
+/// * `error_type2` if ...
 /// 
 /// # Returns
 /// The `add` function returns a Result\<i32, Box\<dyn std::error::Error\>\>.
@@ -33,5 +33,5 @@ Each field in the doc comment should be used only if it applicable to the block 
 ///
 /// # Notes
 /// Any other notes, usage considerations or guidelines, anything important that wasn't included in the previous sections.
-pub fn add(num1: i32, num2: i32) -> Result<i32, Box<dyn std::error::Error>> {...}
+pub fn add(num1: i32, num2: i32) -> Result\<i32, Box\<dyn std::error::Error\>\> {...}
 ````
