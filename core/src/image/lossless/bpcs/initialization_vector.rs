@@ -7,7 +7,7 @@ use crate::{
             prefix_length,
         },
     },
-    utils::bit_operations::{USIZE_BIT_DEPTH, bits_to_usize, unsigned_int_to_bits},
+    utils::bit_operations_utils::{USIZE_BIT_DEPTH, bits_to_usize, unsigned_int_to_bits},
 };
 
 pub(crate) const MESSAGE_LENGTH_IV_BIT_NUMBER: usize = USIZE_BIT_DEPTH;

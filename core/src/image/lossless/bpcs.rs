@@ -20,7 +20,7 @@ use crate::{
         message_plane_iter::MessagePlanesIter,
         plane_selection::{PlaneSelector, count_accepted_planes},
     },
-    utils::image_handling::{image_to_binary_code, image_to_gray_code},
+    utils::image_utils::{image_to_binary_code, image_to_gray_code},
 };
 use image::RgbImage;
 use itertools::Itertools;

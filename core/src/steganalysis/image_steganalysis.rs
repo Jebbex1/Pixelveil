@@ -1,4 +1,4 @@
-use crate::utils::bit_operations::unsigned_int_to_bits;
+use crate::utils::bit_operations_utils::unsigned_int_to_bits;
 use image::{GrayImage, Luma, Rgb, RgbImage};
 use std::collections::HashMap;
 

@@ -1,6 +1,6 @@
 use crate::{
     image::lossless::bpcs::bit_plane::{BYTES_PER_PLANE, BitPlane},
-    utils::bit_operations::unsigned_int_to_bits,
+    utils::bit_operations_utils::unsigned_int_to_bits,
 };
 use rand::{Rng, rng};
 

@@ -1,2 +1,2 @@
-pub(crate) mod bit_operations;
-pub mod image_handling;
+pub(crate) mod bit_operations_utils;
+pub mod image_utils;

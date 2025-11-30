@@ -1,4 +1,4 @@
-use crate::utils::bit_operations::{bits_to_u8, get_bit_from_u8};
+use crate::utils::bit_operations_utils::{bits_to_u8, get_bit_from_u8};
 use image::{GenericImageView, Rgb, RgbImage, SubImage};
 
 pub(crate) const PLANE_SIZE: u32 = 8;
