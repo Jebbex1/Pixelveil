@@ -16,8 +16,8 @@ Each field in the doc comment should be used only if it applicable to the block 
 /// 
 /// # Arguments
 /// The `add` function takes in two arguments:
-/// * `num1: i32` - The first number to add.
-/// * `num2: i32` - The second number to add.
+/// * `num1: i32` — The first number to add.
+/// * `num2: i32` — The second number to add.
 /// 
 /// # Panics
 /// The `add` function panics if `num2` is equal to `11`.

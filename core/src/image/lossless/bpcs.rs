@@ -1,7 +1,21 @@
 //! All the functions to use BPCS (Bit Plane Complexity Segmentation) for embedding, extracting and estimating the
 //! capacity of an image.
-//!
-//! For a theoretical overview of basic BPCS steganography please read <https://www.researchgate.net/file.PostFileLoader.html?id=53b3b80cd5a3f216068b4643&assetKey=AS%3A273551540588545%401442231177391>.
+//! 
+//! # What is BPCS (Bit Plane Complexity Segmentation) Steganography?
+//! BPCS steganography is a steganography method based on splitting an image into hundreds of thousands of small planes 
+//! and enumerating the value of each one to the total image.
+//! 
+//! Here is a basic overview of the reoccurring function parameters:
+//! * `min_alpha` — This parameter corresponds to the complexity threshold that is defined in the BPCS method. The value 
+//!   can range from 0.0 to 0.5 and it is a private component of the BPCS method. The higher the value, the less data 
+//!   you can embed, but the better the steganography quality.
+//! * `rng_key` — This parameter is a parameter specific to this crate's implementation of BPCS, it controls the seed for 
+//!   the pseudo-random selection of which parts of the image to change. This parameter is also a private component.
+//! 
+//! For an in depth review of the principles of BPCS please read [this paper](https://www.researchgate.net/file.PostFileLoader.html?id=53b3b80cd5a3f216068b4643&assetKey=AS%3A273551540588545%401442231177391).
+//! As the link is old, it might not work anymore, if thats the case search for "Principle and Application of BPCS 
+//! Steganography" by E Kawaguchi. 
+
 
 pub(crate) mod bit_plane;
 pub(crate) mod bit_plane_iter;
@@ -36,8 +50,9 @@ use std::iter::zip;
 /// # Example
 /// ```no_run
 /// use pixelveil::{bpcs::embed_data, image_utils::open_rgbimage_from_path};
+/// use image::RgbImage;
 ///
-/// let mut vessel_image = open_rgbimage_from_path("path_to_image.png").unwrap();
+/// let mut vessel_image = RgbImage::new(512, 512);
 /// let data: [u8; _] = [6, 9, 193, 7, 1, 7];
 /// let min_alpha = 0.3f64;
 /// let rng_key = [0u8; 32];
@@ -53,17 +68,17 @@ use std::iter::zip;
 ///
 /// # Arguments
 /// The function takes in five arguments:
-/// * `source_image: &mut RgbImage` A mutable reference to the source image.
-/// * `data: &mut impl Iterator<Item = u8>` An iterator that yields bytes (u8s), this is the data that is going to be
-/// embedded. This was chosen to be an iterator to mitigate the memory usage of large amounts of data.
-/// * `data_length: usize` The length of the data iterator, in bytes (the number of u8s). Must be the exact length
-/// of the `data` iterator.
-/// * `min_alpha: f64` The BPCS minimum complexity coefficient.
-/// * `rng_key: [u8; 32]` The randomization key, used for pseudo-random selection of where to change the source image.
+/// * `source_image: &mut RgbImage` — A mutable reference to the source image.
+/// * `data: &mut impl Iterator<Item = u8>` — An iterator that yields bytes (u8s), this is the data that is going to be
+///   embedded. This was chosen to be an iterator to mitigate the memory usage of large amounts of data.
+/// * `data_length: usize` — The length of the data iterator, in bytes (the number of u8s). Must be the exact length
+///   of the `data` iterator.
+/// * `min_alpha: f64` — The BPCS minimum complexity coefficient.
+/// * `rng_key: [u8; 32]` — The randomization key, used for pseudo-random selection of where to change the source image.
 ///
 /// # Errors
 /// The errors that can be returned are:
-/// * `SteganographyError::InsufficientPlaneNumber` if the image doesn't contain enough bit planes to store the
+/// * `SteganographyError::InsufficientPlaneNumber` — If the image doesn't contain enough bit planes to store the
 /// inputted data.
 ///
 /// # Returns
@@ -140,8 +155,9 @@ pub fn embed_data(
 /// # Example
 /// ```no_run
 /// use pixelveil::{bpcs::extract_data, image_utils::open_rgbimage_from_path};
+/// use image::RgbImage;
 ///
-/// let mut vessel_image = open_rgbimage_from_path("path_to_image.png").unwrap();
+/// let mut vessel_image = RgbImage::new(512, 512);
 /// let min_alpha = 0.3f64;
 /// let rng_key = [0u8; 32];
 ///
@@ -154,13 +170,13 @@ pub fn embed_data(
 ///
 /// # Arguments
 /// The function takes in three arguments:
-/// * `mut source_image: RgbImage` - The image to extract data from.
-/// * `min_alpha: f64` The BPCS minimum complexity coefficient.
-/// * `rng_key: [u8; 32]` The randomization key, used for pseudo-random selection of where to change the source image.
+/// * `mut source_image: RgbImage` — The image to extract data from.
+/// * `min_alpha: f64` — The BPCS minimum complexity coefficient.
+/// * `rng_key: [u8; 32]` — The randomization key, used for pseudo-random selection of where to change the source image.
 ///
 /// # Errors
 /// The errors that can be returned are:
-/// * `SteganographyError::InvalidIVData` if the IV in the image contains invalid data. The most likely causes of this
+/// * `SteganographyError::InvalidIVData` — if the IV in the image contains invalid data. The most likely causes of this
 /// are trying to extract data from an image that doesn't have data hidden in it or incorrect parameters.
 ///
 /// # Returns
@@ -213,6 +229,35 @@ pub fn extract_data(
     Ok(data.drain(0..final_length).collect_vec())
 }
 
+/// Estimates the maximum payload capacity for an image that can be embedded using BPCS
+///
+/// The returned capacity already accounts for all internal overhead and represents the **actual available payload size 
+/// for the user**.
+///
+/// # Example
+/// ```no_run
+/// use pixelveil::bpcs::estimate_maximum_capacity;
+/// use image::RgbImage;
+///
+/// let img = RgbImage::new(512, 512);
+/// let capacity = estimate_maximum_capacity(&img, 0.3);
+/// ```
+///
+/// # Arguments
+/// The `estimate_maximum_capacity` function takes in:
+/// * `source_image: &RgbImage` — The source image to analyze for BPCS embedding capacity.
+/// * `min_alpha: f64` — The BPCS complexity threshold (0.0–0.5).  
+///
+/// # Errors
+/// This function does not return errors.
+///
+/// # Returns
+/// Returns a `u64` indicating the maximum number of payload bytes that can be embedded into `source_image` using BPCS, 
+/// after subtracting all internal overhead such as prefix data and IV planes.
+///
+/// # Notes
+/// * A higher `min_alpha` typically reduces capacity because fewer bit-planes qualify as sufficiently complex.
+/// * The result is deterministic for a given image and threshold.
 pub fn estimate_maximum_capacity(source_image: &RgbImage, min_alpha: f64) -> u64 {
     let accepted_plane_number = count_accepted_planes(source_image, min_alpha);
     let prefix_length = prefix_length(min_alpha);
