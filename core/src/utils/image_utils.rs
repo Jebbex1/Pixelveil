@@ -1,3 +1,5 @@
+//! Utility functions that help reading images, and converting them to [Gray Code](https://en.wikipedia.org/wiki/Gray_code) and back
+
 use crate::utils::bit_operations_utils::{u8_to_binary_code, u8_to_gray_code};
 use image::{ImageError, ImageReader, Rgb, RgbImage, open};
 use std::io::Cursor;

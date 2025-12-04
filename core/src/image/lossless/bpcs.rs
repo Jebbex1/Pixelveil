@@ -1,21 +1,20 @@
 //! All the functions to use BPCS (Bit Plane Complexity Segmentation) for embedding, extracting and estimating the
 //! capacity of an image.
-//! 
+//!
 //! # What is BPCS (Bit Plane Complexity Segmentation) Steganography?
-//! BPCS steganography is a steganography method based on splitting an image into hundreds of thousands of small planes 
+//! BPCS steganography is a steganography method based on splitting an image into hundreds of thousands of small planes
 //! and enumerating the value of each one to the total image.
-//! 
+//!
 //! Here is a basic overview of the reoccurring function parameters:
-//! * `min_alpha` — This parameter corresponds to the complexity threshold that is defined in the BPCS method. The value 
-//!   can range from 0.0 to 0.5 and it is a private component of the BPCS method. The higher the value, the less data 
+//! * `min_alpha` — This parameter corresponds to the complexity threshold that is defined in the BPCS method. The value
+//!   can range from 0.0 to 0.5 and it is a private component of the BPCS method. The higher the value, the less data
 //!   you can embed, but the better the steganography quality.
-//! * `rng_key` — This parameter is a parameter specific to this crate's implementation of BPCS, it controls the seed for 
+//! * `rng_key` — This parameter is a parameter specific to this crate's implementation of BPCS, it controls the seed for
 //!   the pseudo-random selection of which parts of the image to change. This parameter is also a private component.
-//! 
+//!
 //! For an in depth review of the principles of BPCS please read [this paper](https://www.researchgate.net/file.PostFileLoader.html?id=53b3b80cd5a3f216068b4643&assetKey=AS%3A273551540588545%401442231177391).
-//! As the link is old, it might not work anymore, if thats the case search for "Principle and Application of BPCS 
-//! Steganography" by E Kawaguchi. 
-
+//! As the link is old, it might not work anymore, if thats the case search for "Principle and Application of BPCS
+//! Steganography" by E Kawaguchi.
 
 pub(crate) mod bit_plane;
 pub(crate) mod bit_plane_iter;
@@ -231,7 +230,7 @@ pub fn extract_data(
 
 /// Estimates the maximum payload capacity for an image that can be embedded using BPCS
 ///
-/// The returned capacity already accounts for all internal overhead and represents the **actual available payload size 
+/// The returned capacity already accounts for all internal overhead and represents the **actual available payload size
 /// for the user**.
 ///
 /// # Example
@@ -252,7 +251,7 @@ pub fn extract_data(
 /// This function does not return errors.
 ///
 /// # Returns
-/// Returns a `u64` indicating the maximum number of payload bytes that can be embedded into `source_image` using BPCS, 
+/// Returns a `u64` indicating the maximum number of payload bytes that can be embedded into `source_image` using BPCS,
 /// after subtracting all internal overhead such as prefix data and IV planes.
 ///
 /// # Notes
