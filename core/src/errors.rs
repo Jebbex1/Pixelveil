@@ -5,7 +5,7 @@ use std::{
     fmt::{self, Display, Formatter},
 };
 
-/// f
+/// All steganography-related errors
 #[derive(Debug)]
 pub enum SteganographyError {
     /// Occurs when an embedded IV stores invalid data

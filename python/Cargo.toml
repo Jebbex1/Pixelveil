@@ -1,5 +1,5 @@
 [package]
-name = "pyxelveil"                       # name of the Python module (and shared lib)
+name = "pyxelveil" # name of the Python module (and shared lib)
 version = "0.1.0"
 edition = "2024"
 description = ""

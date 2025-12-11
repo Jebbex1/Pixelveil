@@ -1,11 +1,12 @@
 # Rust Doc Comment Format
+
 This is intended for contributes and users alike.
 
 Each field in the doc comment should be used only if it applicable to the block of code, if not - leave it out.
 
-## The format for Rust doc comments is as follows:
+## The format for Rust doc comments is as follows
 
-````
+````md
 /// Short functional description. What the relevant block of code does.
 /// 
 /// # Example
