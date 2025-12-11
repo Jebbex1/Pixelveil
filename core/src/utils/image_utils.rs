@@ -5,28 +5,28 @@ use image::{ImageError, ImageReader, Rgb, RgbImage, open};
 use std::io::Cursor;
 
 /// Open image from the raw data that describes an image file
-/// 
+///
 /// # Example
 /// ```no_run
 /// # use pixelveil::image_utils::open_rgbimage_from_raw;
 /// use std::fs::read;
-/// 
+///
 /// let image_file_data = read("example.png")?;
 /// let img = open_rgbimage_from_raw(image_file_data)?;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-/// 
+///
 /// # Arguments
 /// This function takes in one argument:
 /// * `raw_data: Vec<u8>` — The image file data.
-/// 
+///
 /// # Panics
 /// This function does not panic.
-/// 
+///
 /// # Errors
 /// The possible errors that can be returned are:
 /// * `ImageError` if the data that was passed in is not a valid image file format
-/// 
+///
 /// # Returns
 /// This function returns a `Result<RgbImage, ImageError>`.
 /// If `Ok` is returned, the unwrapped value is the opened `RgbImage`.
@@ -38,25 +38,25 @@ pub fn open_rgbimage_from_raw(raw_data: Vec<u8>) -> Result<RgbImage, ImageError>
 }
 
 /// Open image from a path
-/// 
+///
 /// # Example
 /// ```no_run
 /// # use pixelveil::image_utils::open_rgbimage_from_path;
 /// let img = open_rgbimage_from_path("image.png")?;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-/// 
+///
 /// # Arguments
 /// This function takes in one argument:
 /// * `path: &str` — The image path.
-/// 
+///
 /// # Panics
 /// This function does not panic.
-/// 
+///
 /// # Errors
 /// The possible errors that can be returned are:
 /// * `ImageError` if the path specifies a missing file or one of invalid image format
-/// 
+///
 /// # Returns
 /// This function returns a `Result<RgbImage, ImageError>`.
 /// If `Ok` is returned, the unwrapped value is the opened `RgbImage`.
@@ -65,28 +65,28 @@ pub fn open_rgbimage_from_path(path: &str) -> Result<RgbImage, ImageError> {
 }
 
 /// Converts a 24-bit RGB pixel from pure binary code to Gray Code as defined [here](https://en.wikipedia.org/wiki/Gray_code)
-/// 
+///
 /// # Example
 /// ```
 /// # use pixelveil::image_utils::pixel_to_gray_code;
 /// # use image::Rgb;
 /// let mut pixel = Rgb::<u8>([0b1110101, 0b0011000, 0b1010111]);
-/// 
+///
 /// pixel_to_gray_code(&mut pixel);
-/// 
+///
 /// assert_eq!(pixel, Rgb::<u8>([0b1001111, 0b0010100, 0b1111100]));
 /// ```
-/// 
+///
 /// # Arguments
 /// This function takes in one argument:
 /// * `pixel: &mut Rgb<u8>` — The pixel to convert.
-/// 
+///
 /// # Panics
 /// This function does not panic.
-/// 
+///
 /// # Errors
 /// This function does not return errors.
-/// 
+///
 /// # Returns
 /// This function returns (), the passed in pixel will be changed instead of constructing a new pixel.
 pub fn pixel_to_gray_code(pixel: &mut Rgb<u8>) {
@@ -96,28 +96,28 @@ pub fn pixel_to_gray_code(pixel: &mut Rgb<u8>) {
 }
 
 /// Converts a 24-bit RGB pixel from Gray Code to pure binary code as defined [here](https://en.wikipedia.org/wiki/Gray_code)
-/// 
+///
 /// # Example
 /// ```
 /// # use pixelveil::image_utils::pixel_to_binary_code;
 /// # use image::Rgb;
 /// let mut pixel = Rgb::<u8>([0b10011111, 0b00101001, 0b11111001]);
-/// 
+///
 /// pixel_to_binary_code(&mut pixel);
-/// 
+///
 /// assert_eq!(pixel, Rgb::<u8>([0b11101010, 0b00110001, 0b10101110]));
 /// ```
-/// 
+///
 /// # Arguments
 /// This function takes in one argument:
 /// * `pixel: &mut Rgb<u8>` — The pixel to convert.
-/// 
+///
 /// # Panics
 /// This function does not panic.
-/// 
+///
 /// # Errors
 /// This function does not return errors.
-/// 
+///
 /// # Returns
 /// This function returns (), the passed in pixel will be changed instead of constructing a new pixel.
 pub fn pixel_to_binary_code(pixel: &mut Rgb<u8>) {
@@ -127,28 +127,28 @@ pub fn pixel_to_binary_code(pixel: &mut Rgb<u8>) {
 }
 
 /// Converts an image from pure binary code to Gray Code
-/// 
+///
 /// Applies `pixel_to_gray_code` on every pixel in the image.
-/// 
+///
 /// # Example
 /// ```no_run
 /// # use image::RgbImage;
 /// # use pixelveil::image_utils::image_to_gray_code;
 /// let mut img = RgbImage::new(500, 500);
-/// 
+///
 /// image_to_gray_code(&mut img);
 /// ```
-/// 
+///
 /// # Arguments
 /// This function takes in one argument:
 /// * `image: &mut RgbImage` — The image to convert.
-/// 
+///
 /// # Panics
 /// This function does not panic.
-/// 
+///
 /// # Errors
 /// This function does not return errors.
-/// 
+///
 /// # Returns
 /// This function returns (), the passed in image will be changed instead of constructing a new image.
 pub fn image_to_gray_code(image: &mut RgbImage) {
@@ -158,28 +158,28 @@ pub fn image_to_gray_code(image: &mut RgbImage) {
 }
 
 /// Converts an image from Gray Code to pure binary code
-/// 
+///
 /// Applies `pixel_to_binary_code` on every pixel in the image.
-/// 
+///
 /// # Example
 /// ```no_run
 /// # use image::RgbImage;
 /// # use pixelveil::image_utils::image_to_binary_code;
 /// let mut img = RgbImage::new(500, 500);
-/// 
+///
 /// image_to_binary_code(&mut img);
 /// ```
-/// 
+///
 /// # Arguments
 /// This function takes in one argument:
 /// * `image: &mut RgbImage` — The image to convert.
-/// 
+///
 /// # Panics
 /// This function does not panic.
-/// 
+///
 /// # Errors
 /// This function does not return errors.
-/// 
+///
 /// # Returns
 /// This function returns (), the passed in image will be changed instead of constructing a new image.
 pub fn image_to_binary_code(image: &mut RgbImage) {
@@ -205,13 +205,4 @@ mod tests {
         pixel_to_binary_code(&mut pixel);
         assert_eq!(pixel, Rgb::<u8>([0b11101010, 0b00110001, 0b10101110]));
     }
-}
-
-fn t1() {
-    use image::RgbImage;
-    use crate::image_utils::image_to_gray_code;
-
-    let mut img = RgbImage::new(500, 500);
-
-    image_to_gray_code(&mut img);
 }

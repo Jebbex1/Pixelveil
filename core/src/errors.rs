@@ -1,12 +1,29 @@
+//! All of the custom errors that can be returned in a Result value in this package's functions
+
 use std::{
     error,
     fmt::{self, Display, Formatter},
 };
 
+/// f
 #[derive(Debug)]
 pub enum SteganographyError {
-    InsufficientPlaneNumber(usize, usize), // the number that was expected of the operation, the number there are
-    InvalidIVData(String),                 // the explanation
+    /// Occurs when an embedded IV stores invalid data
+    /// 
+    /// This error will be propagated when the IV contains data that is impossible (e.g. if an IV claims that some 
+    /// value is beyond it's known constraints).
+    /// 
+    /// The stored value represents the explanation to why the data that the IV contains is invalid.
+    InvalidIVData(String),
+
+    /// Occurs when an image doesn't have the minimum amount of accepted bit planes to perform an operation. 
+    /// 
+    /// This is a BPCS specific error and can happen while embedding and extracting.
+    /// 
+    /// The stored values are (in this order): 
+    /// * The minimum number of accepted and unused bit planes that the image was expected to contain
+    /// * The number of accepted and unused bit planes that was found
+    InsufficientPlaneNumber(usize, usize),
 }
 
 impl Display for SteganographyError {
@@ -27,7 +44,6 @@ impl Display for SteganographyError {
         }
     }
 }
-
 impl error::Error for SteganographyError {}
 
 pub(crate) fn check_plane_number(expected: usize, got: usize) -> Result<(), SteganographyError> {
