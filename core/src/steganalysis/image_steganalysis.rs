@@ -11,20 +11,14 @@ use std::collections::HashMap;
 /// ```
 /// # use image::Rgb;
 /// # use pixelveil::image_steganalysis::subtract_pixels;
-/// let p1: Rgb<u8> = Rgb {
-///     0: [13, 80, 40] // R, G, B
-/// };
-/// let p2: Rgb<u8> = Rgb {
-///     0: [240, 93, 31] // R, G, B
-/// };
+/// let p1: Rgb<u8> = Rgb([13, 80, 40]); // R, G, B
+/// let p2: Rgb<u8> = Rgb([240, 93, 31]); // R, G, B
 /// 
 /// let diff = subtract_pixels(&p1, &p2);
 /// 
 /// assert_eq!(
 ///     diff,
-///     Rgb::<u8> {
-///         0: [227, 13, 9] // abs(R1 - R2), abs(G1 - G2), abs(B1 - B2)
-///     }
+///     Rgb::<u8>([227, 13, 9]) // abs(R1 - R2), abs(G1 - G2), abs(B1 - B2)
 /// );
 /// ```
 /// 
@@ -58,20 +52,14 @@ pub fn subtract_pixels(p1: &Rgb<u8>, p2: &Rgb<u8>) -> Rgb<u8> {
 /// ```
 /// # use image::Rgb;
 /// # use pixelveil::image_steganalysis::xor_pixels;
-/// let p1: Rgb<u8> = Rgb {
-///     0: [0b10110010, 0b11011100, 0b11010001] // R, G, B
-/// };
-/// let p2: Rgb<u8> = Rgb {
-///     0: [0b00100011, 0b01110001, 0b11110001] // R, G, B
-/// };
+/// let p1: Rgb<u8> = Rgb([0b10110010, 0b11011100, 0b11010001]); // R, G, B
+/// let p2: Rgb<u8> = Rgb([0b00100011, 0b01110001, 0b11110001]); // R, G, B
 /// 
 /// let xored = xor_pixels(&p1, &p2);
 /// 
 /// assert_eq!(
 ///     xored,
-///     Rgb::<u8> {
-///         0: [0b10010001, 0b10101101, 0b00100000] // R1 ^ R2, G1 ^ G2, B1 ^ B2
-///     }
+///     Rgb::<u8>([0b10010001, 0b10101101, 0b00100000]) // R1 ^ R2, G1 ^ G2, B1 ^ B2
 /// );
 /// ```
 /// 
@@ -256,7 +244,7 @@ pub fn highlight_image_difference(image1: &RgbImage, image2: &RgbImage) -> RgbIm
 /// This function does not return errors.
 /// 
 /// # Returns
-/// This function returns a HashMap\<(u8, u8), GrayImage\>.
+/// This function returns a `HashMap<(u8, u8), GrayImage>`.
 /// Where:
 /// * Each key is a tuple of the channel index (R,G,B = 0,1,2) and the bit index of a bit plane.
 /// * Each value is the bit plane that corresponds to the matching key.
