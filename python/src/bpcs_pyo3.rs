@@ -1,28 +1,44 @@
-use pixelveil::image_utils::{export_image_to_png_bytes, open_rgbimage_from_raw};
-use pyo3::prelude::*;
+use pixelveil::{
+    errors::SteganographyError,
+    image_utils::{export_image_to_png_bytes, open_rgbimage_from_raw},
+};
+use pyo3::{exceptions::PyValueError, prelude::*};
 
 #[pyfunction]
 fn embed_data(
-    source_image_bytes: Vec<u8>,
+    vessel_image_bytes: Vec<u8>,
     data: Vec<u8>,
     min_alpha: f64,
-    rng_key: Vec<u8>,
+    rng_key: &[u8],
 ) -> PyResult<Vec<u8>> {
-    assert_eq!(rng_key.len(), 32);
+    if rng_key.len() != 32 {
+        return Err(PyValueError::new_err(format!(
+            "Provided RNG key length must be 32"
+        )));
+    }
 
-    let mut source_image = open_rgbimage_from_raw(source_image_bytes).unwrap();
+    let mut vessel_image = open_rgbimage_from_raw(vessel_image_bytes).map_err(|e| {
+        PyValueError::new_err(format!("Failed to open image from the provided bytes. {e}"))
+    })?;
+
     let data_length = data.len();
 
     pixelveil::bpcs::embed_data(
-        &mut source_image,
+        &mut vessel_image,
         &mut data.into_iter(),
         data_length,
         min_alpha,
         rng_key.try_into().unwrap(),
     )
-    .unwrap();
+    .map_err(|e| match e {
+        // only InsufficientPlaneNumber can be raised while embedding with BPCS
+        SteganographyError::InsufficientPlaneNumber(expected, got) => {
+            PyValueError::new_err(format!("Tried to embed {expected} planes when only {got} planes were available."))
+        }
+        _ => PyValueError::new_err(format!("{e}")),
+    })?;
 
-    Ok(export_image_to_png_bytes(&source_image))
+    Ok(export_image_to_png_bytes(&vessel_image))
 }
 
 #[pymodule(name = "bpcs")]

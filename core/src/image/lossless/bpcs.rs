@@ -25,6 +25,7 @@ pub(crate) mod message_plane_iter;
 pub(crate) mod plane_selection;
 
 use crate::{
+    errors::SteganographyError,
     image::lossless::bpcs::{
         bit_plane::{
             BYTES_PER_PLANE, USIZE_PLANE_SIZE, get_planes_from_image_and_coords, write_plane_at,
@@ -92,7 +93,7 @@ pub fn embed_data(
     data_length: usize,
     min_alpha: f64,
     rng_key: [u8; 32],
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), SteganographyError> {
     image_to_gray_code(source_image);
 
     // calculate all the necessary values for the initialization vectors and such
