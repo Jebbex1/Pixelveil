@@ -1,3 +1,5 @@
+# this is the poetry config file for the PyPI version of Pixelveil, not the Rust crate.
+
 [project]
 name = "pixelveil"
 version = "0.1.0"
@@ -23,5 +25,11 @@ bindings = "pyo3"
 
 [dependency-groups]
 dev = [
-    "pytest (>=9.0.2,<10.0.0)"
+    "pytest (>=9.0.2,<10.0.0)",
+    "maturin (>=1.10.2,<2.0.0)",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "python/tests",
 ]
