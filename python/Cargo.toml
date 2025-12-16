@@ -1,5 +1,5 @@
 [package]
-name = "pyxelveil" # name of the Python module (and shared lib)
+name = "pixelveil_pyo3" # name of the Python module (and shared lib)
 version = "0.1.0"
 edition = "2024"
 description = ""
@@ -9,7 +9,7 @@ readme = "../README.md"
 
 # This crate compiles to a Python extension module (.so / .pyd)
 [lib]
-name = "pyxelveil"
+name = "pixelveil"
 crate-type = ["cdylib"]
 
 [dependencies]

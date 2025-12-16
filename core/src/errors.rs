@@ -9,18 +9,18 @@ use std::{
 #[derive(Debug)]
 pub enum SteganographyError {
     /// Occurs when an embedded IV stores invalid data
-    /// 
-    /// This error will be propagated when the IV contains data that is impossible (e.g. if an IV claims that some 
+    ///
+    /// This error will be propagated when the IV contains data that is impossible (e.g. if an IV claims that some
     /// value is beyond it's known constraints).
-    /// 
+    ///
     /// The stored value represents the explanation to why the data that the IV contains is invalid.
     InvalidIVData(String),
 
-    /// Occurs when an image doesn't have the minimum amount of accepted bit planes to perform an operation. 
-    /// 
+    /// Occurs when an image doesn't have the minimum amount of accepted bit planes to perform an operation.
+    ///
     /// This is a BPCS specific error and can happen while embedding and extracting.
-    /// 
-    /// The stored values are (in this order): 
+    ///
+    /// The stored values are (in this order):
     /// * The minimum number of accepted and unused bit planes that the image was expected to contain
     /// * The number of accepted and unused bit planes that was found
     InsufficientPlaneNumber(usize, usize),

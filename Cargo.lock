@@ -647,6 +647,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "pixelveil_pyo3"
+version = "0.1.0"
+dependencies = [
+ "pixelveil",
+ "pyo3",
+]
+
+[[package]]
 name = "pkg-config"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -776,14 +784,6 @@ dependencies = [
  "pyo3-build-config",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "pyxelveil"
-version = "0.1.0"
-dependencies = [
- "pixelveil",
- "pyo3",
 ]
 
 [[package]]

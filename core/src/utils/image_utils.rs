@@ -1,7 +1,7 @@
 //! Utility functions that help reading images, and converting them to [Gray Code](https://en.wikipedia.org/wiki/Gray_code) and back
 
 use crate::utils::bit_operations_utils::{u8_to_binary_code, u8_to_gray_code};
-use image::{ImageError, ImageReader, Rgb, RgbImage, open};
+use image::{ImageError, ImageFormat, ImageReader, Rgb, RgbImage, open};
 use std::io::Cursor;
 
 /// Open image from the raw data that describes an image file
@@ -186,6 +186,40 @@ pub fn image_to_binary_code(image: &mut RgbImage) {
     for pixel in image.pixels_mut() {
         pixel_to_binary_code(pixel);
     }
+}
+
+/// Export an RgbImage to a .png file format
+///
+/// # Example
+/// ```no_run
+/// # use pixelveil::image_utils::export_image_to_png_bytes;
+/// # use image::RgbImage;
+/// let image = RgbImage::new(500, 500);
+/// let image_file_bytes = export_image_to_png_bytes(&image);
+/// ```
+///
+/// # Arguments
+/// This function takes in one argument:
+/// * `img: &RgbImage` — The image you want to export.
+///
+/// # Panics
+/// This function does not panic.
+///
+/// # Errors
+/// This function does not return errors.
+///
+/// # Returns
+/// This function returns a `Vec<u8>` that describes the file bytes in the .png file format
+pub fn export_image_to_png_bytes(img: &RgbImage) -> Vec<u8> {
+    // Create an in-memory buffer (Vec<u8>) wrapped in a Cursor
+    let mut bytes: Vec<u8> = Vec::new();
+    let mut cursor = Cursor::new(&mut bytes);
+
+    // Use the write_to method to encode the image into the cursor/buffer
+    img.write_to(&mut cursor, ImageFormat::Png).unwrap();
+
+    // Return the resulting bytes
+    bytes
 }
 
 #[cfg(test)]
