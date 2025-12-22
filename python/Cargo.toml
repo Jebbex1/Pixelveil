@@ -9,10 +9,11 @@ readme = "../README.md"
 
 # This crate compiles to a Python extension module (.so / .pyd)
 [lib]
-name = "pixelveil"
+name = "pixelveil_pyo3"
 crate-type = ["cdylib"]
 
 [dependencies]
+image = "0.25.9"
 # The core Rust logic — local crate
 pixelveil = { path = "../core" }
 

@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 mod bpcs_pyo3;
+mod pyo3_err_prop_utils;
 
 #[pymodule(name = "pixelveil")]
 fn pixelveil(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
