@@ -35,9 +35,46 @@ fn embed_data(
     Ok(export_image_to_png_bytes(&vessel_image))
 }
 
+#[pyfunction]
+fn extract_data(
+    vessel_image_bytes: Vec<u8>,
+    min_alpha: f64,
+    rng_key: &[u8],
+) -> PyResult<Vec<u8>> {
+    check_rng_key_len(rng_key)?;
+
+    let vessel_image = open_image_from_bytes(vessel_image_bytes)?;
+
+    let extracted = pixelveil::bpcs::extract_data(
+        vessel_image, 
+        min_alpha, 
+        rng_key.try_into().unwrap(),
+    )
+    .map_err(|e| match e {
+        // only InsufficientPlaneNumber can be raised while embedding with BPCS
+        SteganographyError::InsufficientPlaneNumber(expected, got) => PyValueError::new_err(
+            format!(
+                "Tried to read {expected} planes from the image when there were only {got} valid ones. 
+                This was probably caused by attempting to extract data from an image that didn't have data hidden in it 
+                or with incorrect parameters. If you know this is not the case, please contact the developer"
+            ),
+        ),
+        SteganographyError::InvalidIVData(reason) => PyValueError::new_err(
+            format!(
+                "The IV that was read contains invalid data: {reason}
+                This was probably caused by attempting to extract data from an image that didn't have data hidden in it 
+                or with incorrect parameters. If you know this is not the case, please contact the developer"
+            ),
+        ),
+    })?;
+
+    Ok(extracted)
+}
+
 #[pymodule(name = "bpcs")]
 pub(crate) fn attach_module(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(embed_data, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_data, m)?)?;
 
     Ok(())
 }

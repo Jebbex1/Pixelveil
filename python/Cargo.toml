@@ -1,15 +1,15 @@
 [package]
-name = "pixelveil_pyo3" # name of the Python module (and shared lib)
+name = "pixelveil_pyo3"
 version = "0.1.0"
 edition = "2024"
 description = ""
 license = "MIT"
 authors = ["Jebbex <107323805+Jebbex1@users.noreply.github.com>"]
 readme = "../README.md"
+publish = false
 
 # This crate compiles to a Python extension module (.so / .pyd)
 [lib]
-name = "pixelveil_pyo3"
 crate-type = ["cdylib"]
 
 [dependencies]

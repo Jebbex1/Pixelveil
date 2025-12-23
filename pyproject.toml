@@ -20,8 +20,9 @@ build-backend = "maturin"
 
 
 [tool.maturin]
-manifest-path = "python/Cargo.toml"
 bindings = "pyo3"
+python-source = "python"
+manifest-path = "python/Cargo.toml"
 
 [dependency-groups]
 dev = [

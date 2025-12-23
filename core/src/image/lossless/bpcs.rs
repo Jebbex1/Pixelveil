@@ -186,7 +186,7 @@ pub fn extract_data(
     mut source_image: RgbImage,
     min_alpha: f64,
     rng_key: [u8; 32],
-) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+) -> Result<Vec<u8>, SteganographyError> {
     image_to_gray_code(&mut source_image);
 
     let mut selector = PlaneSelector::new(&source_image, min_alpha, rng_key);

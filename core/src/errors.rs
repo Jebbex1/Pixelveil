@@ -38,7 +38,7 @@ impl Display for SteganographyError {
             Self::InvalidIVData(reason) => {
                 write!(
                     f,
-                    "The extracted IV data is invalid: {reason}. The most probable cause for this is incorrect running parameters."
+                    "The extracted IV data is invalid: {reason}"
                 )
             }
         }
