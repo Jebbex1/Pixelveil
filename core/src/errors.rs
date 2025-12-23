@@ -36,10 +36,7 @@ impl Display for SteganographyError {
                 )
             }
             Self::InvalidIVData(reason) => {
-                write!(
-                    f,
-                    "The extracted IV data is invalid: {reason}"
-                )
+                write!(f, "The extracted IV data is invalid: {reason}")
             }
         }
     }

@@ -13,6 +13,7 @@ def test_circular_bpcs():
     
     assert extract_out == data_bytes
 
+
 def test_maximum_capacity_runs():
     from pixelveil import bpcs
     

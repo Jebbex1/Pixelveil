@@ -36,18 +36,14 @@ fn embed_data(
 }
 
 #[pyfunction]
-fn extract_data(
-    vessel_image_bytes: Vec<u8>,
-    min_alpha: f64,
-    rng_key: &[u8],
-) -> PyResult<Vec<u8>> {
+fn extract_data(vessel_image_bytes: Vec<u8>, min_alpha: f64, rng_key: &[u8]) -> PyResult<Vec<u8>> {
     check_rng_key_len(rng_key)?;
 
     let vessel_image = open_image_from_bytes(vessel_image_bytes)?;
 
     let extracted = pixelveil::bpcs::extract_data(
-        vessel_image, 
-        min_alpha, 
+        vessel_image,
+        min_alpha,
         rng_key.try_into().unwrap(),
     )
     .map_err(|e| match e {
@@ -75,7 +71,10 @@ fn extract_data(
 fn estimate_maximum_capacity(vessel_image_bytes: Vec<u8>, min_alpha: f64) -> PyResult<u64> {
     let vessel_image = open_image_from_bytes(vessel_image_bytes)?;
 
-    Ok(pixelveil::bpcs::estimate_maximum_capacity(&vessel_image, min_alpha))
+    Ok(pixelveil::bpcs::estimate_maximum_capacity(
+        &vessel_image,
+        min_alpha,
+    ))
 }
 
 #[pymodule(name = "bpcs")]
