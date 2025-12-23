@@ -11,8 +11,9 @@ pub(crate) fn open_image_from_bytes(image_bytes: Vec<u8>) -> PyResult<RgbImage> 
 
 pub(crate) fn check_rng_key_len(rng_key: &[u8]) -> PyResult<()> {
     if rng_key.len() != 32 {
+        let len = rng_key.len();
         return Err(PyValueError::new_err(format!(
-            "Provided RNG key length must be 32"
+            "Provided RNG key length must be 32, provided key of length {len}"
         )));
     }
     Ok(())

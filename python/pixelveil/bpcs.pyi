@@ -10,3 +10,8 @@ def extract_data(
     min_alpha: float,
     rng_key: bytes,
 ) -> bytes: ...
+
+def estimate_maximum_capacity(
+    vessel_image_bytes: bytes,
+    min_alpha: float,
+) -> int: ...

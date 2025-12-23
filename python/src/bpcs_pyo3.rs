@@ -71,10 +71,18 @@ fn extract_data(
     Ok(extracted)
 }
 
+#[pyfunction]
+fn estimate_maximum_capacity(vessel_image_bytes: Vec<u8>, min_alpha: f64) -> PyResult<u64> {
+    let vessel_image = open_image_from_bytes(vessel_image_bytes)?;
+
+    Ok(pixelveil::bpcs::estimate_maximum_capacity(&vessel_image, min_alpha))
+}
+
 #[pymodule(name = "bpcs")]
 pub(crate) fn attach_module(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(embed_data, m)?)?;
     m.add_function(wrap_pyfunction!(extract_data, m)?)?;
+    m.add_function(wrap_pyfunction!(estimate_maximum_capacity, m)?)?;
 
     Ok(())
 }
