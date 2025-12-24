@@ -1,5 +1,5 @@
 use crate::{
-    errors::{SteganographyError, check_plane_number},
+    errors::SteganographyError,
     image::lossless::bpcs::{
         bit_plane::{BitPlane, PLANE_SIZE, USIZE_PLANE_SIZE},
         dynamic_prefix::{
@@ -57,9 +57,6 @@ pub(crate) fn extract_iv_data_from_iv_planes(
     mut planes: Vec<BitPlane>,
     min_alpha: f64,
 ) -> Result<(usize, usize), SteganographyError> {
-    let minimum_plane_num = calculate_iv_plane_number(min_alpha);
-    check_plane_number(minimum_plane_num, planes.len())?;
-
     let prefix_length = prefix_length(min_alpha);
     let msg_len_iv_plane_length =
         num_of_prefixed_planes_for_n_bits(MESSAGE_LENGTH_IV_BIT_NUMBER, prefix_length);
@@ -99,11 +96,6 @@ pub(crate) fn extract_conj_map_data_from_conj_map_planes(
     min_alpha: f64,
     message_plane_length: usize,
 ) -> Result<Vec<bool>, SteganographyError> {
-    let conjugation_map_plane_length =
-        num_of_prefixed_planes_for_n_bits(message_plane_length, prefix_length(min_alpha));
-
-    check_plane_number(conjugation_map_plane_length, planes.len())?;
-
     let conjugation_map_data = data_bits_from_prefixed_planes(planes, min_alpha)
         .drain(0..message_plane_length) // get only the bits of iv data, without the filling
         .collect::<Vec<bool>>();

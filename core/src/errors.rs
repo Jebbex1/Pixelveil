@@ -42,11 +42,3 @@ impl Display for SteganographyError {
     }
 }
 impl error::Error for SteganographyError {}
-
-pub(crate) fn check_plane_number(expected: usize, got: usize) -> Result<(), SteganographyError> {
-    if expected > got {
-        Err(SteganographyError::InsufficientPlaneNumber(expected, got))
-    } else {
-        Ok(())
-    }
-}

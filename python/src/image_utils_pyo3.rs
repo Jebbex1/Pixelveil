@@ -7,9 +7,9 @@ use crate::pyo3_err_prop_utils::open_image_from_bytes;
 #[pyfunction]
 fn pixel_to_gray_code(pixel: (u8, u8, u8)) -> PyResult<(u8, u8, u8)> {
     let mut rgb_pixel = Rgb::<u8> {
-        0: [pixel.0, pixel.1, pixel.2]
+        0: [pixel.0, pixel.1, pixel.2],
     };
-    
+
     pixelveil::image_utils::pixel_to_gray_code(&mut rgb_pixel);
 
     Ok((rgb_pixel.0[0], rgb_pixel.0[1], rgb_pixel.0[2]))
@@ -18,9 +18,9 @@ fn pixel_to_gray_code(pixel: (u8, u8, u8)) -> PyResult<(u8, u8, u8)> {
 #[pyfunction]
 fn pixel_to_binary_code(pixel: (u8, u8, u8)) -> PyResult<(u8, u8, u8)> {
     let mut rgb_pixel = Rgb::<u8> {
-        0: [pixel.0, pixel.1, pixel.2]
+        0: [pixel.0, pixel.1, pixel.2],
     };
-    
+
     pixelveil::image_utils::pixel_to_binary_code(&mut rgb_pixel);
 
     Ok((rgb_pixel.0[0], rgb_pixel.0[1], rgb_pixel.0[2]))
