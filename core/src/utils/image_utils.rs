@@ -30,6 +30,9 @@ use std::io::Cursor;
 /// # Returns
 /// This function returns a `Result<RgbImage, ImageError>`.
 /// If `Ok` is returned, the unwrapped value is the opened `RgbImage`.
+/// 
+/// # Notes
+/// This function is used as an abstraction for image handling in Rust, it does not have a Python wrapper function.
 pub fn open_rgbimage_from_raw(raw_data: Vec<u8>) -> Result<RgbImage, ImageError> {
     let cursor = Cursor::new(raw_data);
     let img = ImageReader::new(cursor).with_guessed_format()?;
@@ -60,6 +63,9 @@ pub fn open_rgbimage_from_raw(raw_data: Vec<u8>) -> Result<RgbImage, ImageError>
 /// # Returns
 /// This function returns a `Result<RgbImage, ImageError>`.
 /// If `Ok` is returned, the unwrapped value is the opened `RgbImage`.
+/// 
+/// # Notes
+/// This function is used as an abstraction for image handling in Rust, it does not have a Python wrapper function.
 pub fn open_rgbimage_from_path(path: &str) -> Result<RgbImage, ImageError> {
     Ok(open(path)?.to_rgb8())
 }
@@ -210,6 +216,9 @@ pub fn image_to_binary_code(image: &mut RgbImage) {
 ///
 /// # Returns
 /// This function returns a `Vec<u8>` that describes the file bytes in the .png file format
+/// 
+/// # Notes
+/// This function is used as an abstraction for image handling in Rust, it does not have a Python wrapper function.
 pub fn export_image_to_png_bytes(img: &RgbImage) -> Vec<u8> {
     // Create an in-memory buffer (Vec<u8>) wrapped in a Cursor
     let mut bytes: Vec<u8> = Vec::new();
