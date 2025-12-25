@@ -1,17 +1,12 @@
-# this is the poetry config file for the PyPI version of Pixelveil, not the Rust crate.
-
 [project]
 name = "pixelveil"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "Jebbex",email = "107323805+Jebbex1@users.noreply.github.com"}
-]
-license = {text = "MIT"}
-readme = "README.md"
+authors = [{ name = "Jebbex", email = "107323805+Jebbex1@users.noreply.github.com" }]
 requires-python = ">=3.13"
-dependencies = [
-]
+readme = "README.md"
+license = { text = "MIT" }
+dependencies = []
 
 
 [build-system]
