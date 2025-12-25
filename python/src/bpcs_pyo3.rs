@@ -32,7 +32,9 @@ fn embed_data(
         },
     })?;
 
-    Ok(export_image_to_png_bytes(&vessel_image))
+    Ok(export_image_to_png_bytes(&image::DynamicImage::ImageRgb8(
+        vessel_image,
+    )))
 }
 
 #[pyfunction]

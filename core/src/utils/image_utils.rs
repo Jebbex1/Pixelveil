@@ -1,7 +1,7 @@
 //! Utility functions that help reading images, and converting them to [Gray Code](https://en.wikipedia.org/wiki/Gray_code) and back
 
 use crate::utils::bit_operations_utils::{u8_to_binary_code, u8_to_gray_code};
-use image::{ImageError, ImageFormat, ImageReader, Rgb, RgbImage, open};
+use image::{DynamicImage, ImageError, ImageFormat, ImageReader, Rgb, RgbImage, open};
 use std::io::Cursor;
 
 /// Open image from the raw data that describes an image file
@@ -194,19 +194,19 @@ pub fn image_to_binary_code(image: &mut RgbImage) {
     }
 }
 
-/// Export an RgbImage to a .png file format
+/// Export any DynamicImage to a .png file format
 ///
 /// # Example
-/// ```no_run
+/// ```
 /// # use pixelveil::image_utils::export_image_to_png_bytes;
-/// # use image::RgbImage;
-/// let image = RgbImage::new(500, 500);
+/// # use image::{DynamicImage, ColorType};
+/// let image = DynamicImage::new(500, 500, ColorType::Rgb8);
 /// let image_file_bytes = export_image_to_png_bytes(&image);
 /// ```
 ///
 /// # Arguments
 /// This function takes in one argument:
-/// * `img: &RgbImage` — The image you want to export.
+/// * `img: &DynamicImage` — The image you want to export.
 ///
 /// # Panics
 /// This function does not panic.
@@ -219,7 +219,7 @@ pub fn image_to_binary_code(image: &mut RgbImage) {
 ///
 /// # Notes
 /// This function is used as an abstraction for image handling in Rust, it does not have a Python wrapper function.
-pub fn export_image_to_png_bytes(img: &RgbImage) -> Vec<u8> {
+pub fn export_image_to_png_bytes(img: &DynamicImage) -> Vec<u8> {
     // Create an in-memory buffer (Vec<u8>) wrapped in a Cursor
     let mut bytes: Vec<u8> = Vec::new();
     let mut cursor = Cursor::new(&mut bytes);

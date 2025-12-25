@@ -32,7 +32,9 @@ fn image_to_gray_code(image_bytes: Vec<u8>) -> PyResult<Vec<u8>> {
 
     pixelveil::image_utils::image_to_gray_code(&mut img);
 
-    Ok(export_image_to_png_bytes(&img))
+    Ok(export_image_to_png_bytes(&image::DynamicImage::ImageRgb8(
+        img,
+    )))
 }
 
 #[pyfunction]
@@ -41,7 +43,9 @@ fn image_to_binary_code(image_bytes: Vec<u8>) -> PyResult<Vec<u8>> {
 
     pixelveil::image_utils::image_to_binary_code(&mut img);
 
-    Ok(export_image_to_png_bytes(&img))
+    Ok(export_image_to_png_bytes(&image::DynamicImage::ImageRgb8(
+        img,
+    )))
 }
 
 #[pymodule(name = "image_utils")]
