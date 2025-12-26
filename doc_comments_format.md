@@ -55,32 +55,28 @@ pub fn add(num1: i32, num2: i32) -> Result\<i32, Box\<dyn std::error::Error\>\> 
 
 ### Python Doc Comment Format
 
-Formatted in the reStructuredText Python doc comment format.
+Formatted in the Google-Style docstring format.
 
 ````python
 def add(num1: int, num2: int) -> int:
     """Add two numbers together
     
-    ## Example
-    ```python
-    a = add(4, 7)
-    assert a == 13
+    Example:
     ```
-
-    :param a: The first number to add
-    :type a: int
+        a = add(4, 7)
+        assert a == 13
+    ```
     
-    :param b: The second number to add
-    :type b: int
+    Args:
+        num1: (int) — The first number.
+        num2: (int) — The second number.
     
-    :raises PanicException: if `num2` is equal to `11`.
-    * `ValueError` if ...
+    Returns:
+        int: The result of the mathematical operation `num1 + num2`.
     
-    :return: The result of the mathematical operation `num1 + num2`.
-    :rtype: int
-    
-    ## Notes
-    Don't use with floats.
+    Raises:
+        PanicException: If `num2` is equal to `11`.
+        ValueError: If ...
     """
     ...
 ````
