@@ -64,14 +64,14 @@ def add(num1: int, num2: int) -> int:
     Note that ... (if there are notes)
     
     Example:
-    ```
+        ```
         a = add(4, 7)
         assert a == 13
-    ```
+        ```
     
     Args:
-        num1: (int) — The first number.
-        num2: (int) — The second number.
+        num1 (int): The first number.
+        num2 (int):  The second number.
     
     Raises:
         PanicException: If `num2` is equal to `11`.

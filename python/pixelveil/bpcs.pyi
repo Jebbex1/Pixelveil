@@ -6,9 +6,6 @@ def embed_data(
 ) -> bytes: 
     """Embed data into an image using BPCS.
     
-    Please note that `pyo3_runtime.PanicException` can also be raised if the underlying Rust program panics, it should 
-    not be raised. If it does get raised, contact a developer.
-    
     Example:
         ```
         from pixelveil import bpcs
@@ -46,11 +43,8 @@ def extract_data(
 ) -> bytes: 
     """Extract data from an image using BPCS.
     
-    Please note that `pyo3_runtime.PanicException` can also be raised if the underlying Rust program panics, it should 
-    not be raised. If it does get raised, contact a developer.
-    
     Example:
-    ```
+        ```
         from pixelveil import bpcs
 
         rng_key = b"KEY1" * 8
@@ -59,7 +53,7 @@ def extract_data(
         vessel_image = ... # The vessel image that was outputted from embed_data.
         
         extracted_data = bpcs.extract_data(vessel_image, min_alpha, rng_key)
-    ```
+        ```
     
     Args:
         vessel_image_bytes (bytes): The vessel image bytes.
@@ -84,18 +78,15 @@ def estimate_maximum_capacity(
 ) -> int: 
     """Estimate how much data can be embedded in an image using BPCS and given parameters.
     
-    Please note that `pyo3_runtime.PanicException` can also be raised if the underlying Rust program panics, it should 
-    not be raised. If it does get raised, contact a developer.
-    
     Example:
-    ```
+        ```
         from pixelveil import bpcs
 
         min_alpha = 0.3
         vessel_image_bytes = open("path/to/vessel/image.png", "rb").read()
         
         estimated_capacity = bpcs.estimate_maximum_capacity(vessel_image_bytes, min_alpha)
-    ```
+        ```
     
     Args:
         vessel_image_bytes (bytes): The vessel image bytes.
