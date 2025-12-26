@@ -60,6 +60,8 @@ Formatted in the Google-Style docstring format.
 ````python
 def add(num1: int, num2: int) -> int:
     """Add two numbers together
+
+    Note that ... (if there are notes)
     
     Example:
     ```
@@ -71,12 +73,12 @@ def add(num1: int, num2: int) -> int:
         num1: (int) — The first number.
         num2: (int) — The second number.
     
-    Returns:
-        int: The result of the mathematical operation `num1 + num2`.
-    
     Raises:
         PanicException: If `num2` is equal to `11`.
         ValueError: If ...
+    
+    Returns:
+        int: The result of the mathematical operation `num1 + num2`.
     """
     ...
 ````
