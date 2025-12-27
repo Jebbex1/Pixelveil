@@ -117,8 +117,8 @@ pub fn xor_pixels(p1: &Rgb<u8>, p2: &Rgb<u8>) -> Rgb<u8> {
 /// corresponding pixels in the two images.
 pub fn subtract_images(image1: &RgbImage, image2: &RgbImage) -> RgbImage {
     assert_eq!(
-        image1.dimensions(), 
-        image2.dimensions(), 
+        image1.dimensions(),
+        image2.dimensions(),
         "The two passed in images do not have the same dimensions: ({:?} and {:?})",
         image1.dimensions(),
         image2.dimensions(),
@@ -166,8 +166,8 @@ pub fn subtract_images(image1: &RgbImage, image2: &RgbImage) -> RgbImage {
 /// corresponding pixels in the two images.
 pub fn xor_images(image1: &RgbImage, image2: &RgbImage) -> RgbImage {
     assert_eq!(
-        image1.dimensions(), 
-        image2.dimensions(), 
+        image1.dimensions(),
+        image2.dimensions(),
         "The two passed in images do not have the same dimensions: ({:?} and {:?})",
         image1.dimensions(),
         image2.dimensions(),
