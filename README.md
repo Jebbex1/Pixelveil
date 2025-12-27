@@ -16,9 +16,13 @@ This library leverages [PyO3](https://github.com/PyO3/pyo3) to write python wrap
 
 Even if you don't program in Rust, I encourage you to read the rust documentation of this library to have a good understanding of the Rust code that is called under the hood when the Python package is used.
 
-Please note that `pyo3_runtime.PanicException` can be raised if the underlying Rust program panics, it should not be raised. If it does get raised, contact me.
+Please note that `pyo3_runtime.PanicException` can be raised if the underlying Rust program panics. If a program panics, it means that the arguments that were passed in are invalid. An explanation will be included in the error message. Every function that panics intentionally will have an explanation of the exact case in the docstring.
 
-All the Python functions have docstrings that you should read before using the function.
+If you are certain that the arguments that you passed in are valid but the function still panicked, contact a developer.
+
+Also note that, all functions that require an image (or images) as an argument(s) expect to receive bytes that describe an image in a known file format (e.g. PNG, JPEG, BMP...). They also return bytes that describe an image in a known format.
+
+All the Python functions have docstrings that I recommend you read before using the function.
 
 ### Modules
 

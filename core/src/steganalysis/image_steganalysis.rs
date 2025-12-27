@@ -116,7 +116,13 @@ pub fn xor_pixels(p1: &Rgb<u8>, p2: &Rgb<u8>) -> Rgb<u8> {
 /// This function returns an image that every pixel at x,y is the result of applying `subtract_pixels` to the
 /// corresponding pixels in the two images.
 pub fn subtract_images(image1: &RgbImage, image2: &RgbImage) -> RgbImage {
-    assert_eq!(image1.dimensions(), image2.dimensions());
+    assert_eq!(
+        image1.dimensions(), 
+        image2.dimensions(), 
+        "The two passed in images do not have the same dimensions: ({:?} and {:?})",
+        image1.dimensions(),
+        image2.dimensions(),
+    );
     let mut diff_image = RgbImage::new(image1.width(), image1.height());
 
     for (x, y) in iproduct!(0..image1.width(), 0..image1.height()) {
@@ -159,7 +165,13 @@ pub fn subtract_images(image1: &RgbImage, image2: &RgbImage) -> RgbImage {
 /// This function returns an image that every pixel at x,y is the result of applying `xor_pixels` to the
 /// corresponding pixels in the two images.
 pub fn xor_images(image1: &RgbImage, image2: &RgbImage) -> RgbImage {
-    assert_eq!(image1.dimensions(), image2.dimensions());
+    assert_eq!(
+        image1.dimensions(), 
+        image2.dimensions(), 
+        "The two passed in images do not have the same dimensions: ({:?} and {:?})",
+        image1.dimensions(),
+        image2.dimensions(),
+    );
     let mut diff_image = RgbImage::new(image1.width(), image1.height());
 
     for (x, y) in iproduct!(0..image1.width(), 0..image1.height()) {
@@ -221,7 +233,7 @@ pub fn highlight_image_difference(image1: &RgbImage, image2: &RgbImage) -> RgbIm
 /// Slices a 24-bit RGB image into 24 bit planes that represent each bit plane of the image as defined [here](https://en.wikipedia.org/wiki/Bit_plane)
 ///
 /// # Example
-/// ```not_run
+/// ```no_run
 /// # use image::RgbImage;
 /// # use pixelveil::image_steganalysis::slice_image_bit_planes;
 /// let img = RgbImage::new(500, 500);
