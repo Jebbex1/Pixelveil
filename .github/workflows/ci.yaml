@@ -7,19 +7,14 @@ on:
     branches: [main]
 
 jobs:
-  build-and-test:
+  rust-tests:
+    name: Rust tests
     runs-on: ubuntu-latest
 
     steps:
-      # -------------------------
-      # Checkout
-      # -------------------------
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # -------------------------
-      # Rust
-      # -------------------------
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
@@ -35,9 +30,52 @@ jobs:
       - name: Run Rust tests
         run: cargo test --workspace --all-features
 
-      # -------------------------
-      # Python
-      # -------------------------
+  python-build:
+    name: Python build (maturin)
+    runs-on: ubuntu-latest
+    needs: rust-tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Create venv and install Python dependencies
+        run: |
+          uv venv
+          uv pip install maturin
+          uv pip install .[dev]
+
+      - name: Build PyO3 extension
+        run: |
+          uv run maturin develop \
+            --manifest-path python/Cargo.toml \
+            --locked
+
+  python-tests:
+    name: Python tests
+    runs-on: ubuntu-latest
+    needs: python-build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
