@@ -59,7 +59,7 @@ def xor_pixels(
 def subtract_images(
     image1_bytes: bytes,
     image2_bytes: bytes,
-) -> bytes: 
+) -> bytes:
     """Subtract two 24-bit RGB images from one another.
     
     Applies the `subtract_pixels` function to each pair of pixels at the same x,y and records the result in a new 
@@ -92,7 +92,7 @@ def subtract_images(
 def xor_images(
     image1_bytes: bytes,
     image2_bytes: bytes,
-) -> bytes: 
+) -> bytes:
     """XOR two 24-bit RGB images from one another.
     
     Applies the `xor_pixels` function to each pair of pixels at the same x,y and records the result in a new 
@@ -125,7 +125,7 @@ def xor_images(
 def highlight_image_difference(
     image1_bytes: bytes,
     image2_bytes: bytes,
-) -> bytes: 
+) -> bytes:
     """Highlight each different channel in each pixel between two 24-bit RGB images.
     
     Uses the `subtract_images` function to calculate the exact difference between two images. Then, sets every 
@@ -157,7 +157,7 @@ def highlight_image_difference(
 
 def slice_image_bit_planes(
     image_bytes: bytes,
-) -> dict[tuple[int, int], bytes]: 
+) -> dict[tuple[int, int], bytes]:
     """Slices a 24-bit RGB image into 24 bit planes that represent each bit plane of the image as defined 
     [here](https://en.wikipedia.org/wiki/Bit_plane).
     

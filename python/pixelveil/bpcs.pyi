@@ -3,7 +3,7 @@ def embed_data(
     data: bytes,
     min_alpha: float,
     rng_key: bytes,
-) -> bytes: 
+) -> bytes:
     """Embed data into an image using BPCS.
     
     Example:
@@ -40,7 +40,7 @@ def extract_data(
     vessel_image_bytes: bytes,
     min_alpha: float,
     rng_key: bytes,
-) -> bytes: 
+) -> bytes:
     """Extract data from an image using BPCS.
     
     Example:
@@ -75,7 +75,7 @@ def extract_data(
 def estimate_maximum_capacity(
     vessel_image_bytes: bytes,
     min_alpha: float,
-) -> int: 
+) -> int:
     """Estimate how much data can be embedded in an image using BPCS and given parameters.
     
     Example:
