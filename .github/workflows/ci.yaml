@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -------------------------
+      # Checkout
+      # -------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # -------------------------
+      # Rust
+      # -------------------------
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run Rust tests
+        run: cargo test --workspace --all-features
+
+      # -------------------------
+      # Python
+      # -------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      # -------------------------
+      # Python dependencies
+      # -------------------------
+      - name: Create venv and install Python dependencies
+        run: |
+          uv venv
+          uv pip install maturin
+          uv pip install .[dev]
+
+      # -------------------------
+      # Build PyO3 extension
+      # -------------------------
+      - name: Build Python extension
+        run: |
+          maturin develop \
+            --manifest-path python/Cargo.toml \
+            --locked
+
+      # -------------------------
+      # Python tests
+      # -------------------------
+      - name: Run pytest
+        run: pytest
