@@ -2,10 +2,14 @@
 name = "pixelveil"
 version = "0.1.0"
 edition = "2024"
-description = ""
+description = "A performant steganography and steganalysis library for hiding data in images, audio files, and videos"
 license = "MIT"
 authors = ["Jebbex <107323805+Jebbex1@users.noreply.github.com>"]
 readme = "../README.md"
+repository = "https://github.com/Jebbex1/Pixelveil"
+keywords = ["steganography", "steganalysis"]
+workspace = "../"
+
 
 [lib]
 name = "pixelveil"
