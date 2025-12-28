@@ -9,13 +9,28 @@
 //!
 //! Additionally, some steganography methods support specific filetypes or compression methods. Each method will have
 //! this info in its module level documentation.
+//! 
+//! # Custom Structs and Types Used in this Project
+//! The [RgbImage](https://docs.rs/image/latest/image/type.RgbImage.html) type is widely used in this project for 
+//! image processing in this crate. It represents a 24-bit RGB image, this specific type of image is the standard and 
+//! most common way to represent images.
+//! 
+//! There are some functions that use the [DynamicImage](https://docs.rs/image/latest/image/enum.DynamicImage.html) 
+//! enum because they don't require a 24-bit RGB image specifically.
+//! 
+//! For instructions and utility functions on how to open, handle, and export RgbImages and DynamicImages, consult the 
+//! [image_utils] module.
 //!
-//! # Supported Steganography Methods
+//! # Steganography Functionality
 //! Lossless Images:
 //! * [BPCS (Bit Plane Complexity Segmentation)](bpcs)
 //!
 //! # Steganalysis Functionality
-//!
+//! Image Steganalysis:
+//! * [Subtract two images](image_steganalysis::subtract_images), [Subtract two pixels](image_steganalysis::subtract_pixels)
+//! * [XOR two images](image_steganalysis::xor_images), [XOR two pixels](image_steganalysis::xor_pixels)
+//! * [Highlight every different channel in every pixel between two images](image_steganalysis::highlight_image_difference)
+//! * [Slice an image into 24 bit planes](image_steganalysis::slice_image_bit_planes)
 //!
 //! # Future Development
 //! In the future I plan on implementing the following steganography methods (not in this particular order):
