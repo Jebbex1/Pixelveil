@@ -6,15 +6,17 @@ Steganography can be used for watermarking, covert communications and info hidin
 
 ## The Currently Supported Steganography Methods
 
-## Usage in Rust
+This library currently supports only [BPCS (Bit Plane Complexity Segmentation)](https://en.wikipedia.org/wiki/BPCS-steganography) steganography.
+
+## Rust Usage
 
 Please consult the Rust crate documentation.
 
-## Usage in Python
+## Python Usage
 
 This library leverages [PyO3](https://github.com/PyO3/pyo3) to write python wrappers to the public interface of the Rust crate.
 
-Even if you don't program in Rust, I encourage you to read the rust documentation of this library to have a good understanding of the Rust code that is called under the hood when the Python package is used.
+Even if you don't program in Rust, I encourage you to read the Rust documentation of this library to have a good understanding of the Rust code that is called under the hood when the Python package is used.
 
 Please note that `pyo3_runtime.PanicException` can be raised if the underlying Rust program panics. If a program panics, it means that the arguments that were passed in are invalid. An explanation will be included in the error message. Every function that panics intentionally will have an explanation of the exact case in the docstring.
 
@@ -36,8 +38,15 @@ Each function is contained by the same module, and has the exact name as the Rus
 
 ## Contributing
 
-As of writing this README, there is no contributing program for this repository. If you are interested in contributing, you contact me at `jebbex42@gmail.com`.
+As of writing this README, there is no contributing program for this repository. If you are interested in contributing, contact me at `jebbex42@gmail.com`.
 
 ## Future Development
+
+In the future I plan on implementing the following steganography methods (not in this particular order):
+
+* Image LSB (Least Significant Bit) — only for lossless filetypes
+* Lossless audio filetype (.wav) method(s)
+* Lossy audio filetype (.mp3) method(s)
+* Video steganography methods (.mp4)
 
 Because I am a One Man Operation™, I need time to research, prototype, and finalize each one of these steganography methods. So don't hold your breath :)

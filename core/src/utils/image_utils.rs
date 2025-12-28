@@ -231,6 +231,35 @@ pub fn export_image_to_png_bytes(img: &DynamicImage) -> Vec<u8> {
     bytes
 }
 
+/// Convert an RgbImage to a DynamicImage
+///
+/// # Example
+/// ```
+/// # use pixelveil::image_utils::rgbimage_to_dynamicimage;
+/// # use image::{DynamicImage, RgbImage};
+/// let rgb_image = RgbImage::new(500, 500);
+/// let dynamic_image = rgbimage_to_dynamicimage(rgb_image);
+/// ```
+///
+/// # Arguments
+/// This function takes in one argument:
+/// * `img: RgbImage` — The image you want to convert.
+///
+/// # Panics
+/// This function does not panic.
+///
+/// # Errors
+/// This function does not return errors.
+///
+/// # Returns
+/// This function returns a DynamicImage that contains the moved RgbImage.
+///
+/// # Notes
+/// This function is used as an abstraction for image handling in Rust, it does not have a Python wrapper function.
+pub fn rgbimage_to_dynamicimage(img: RgbImage) -> DynamicImage {
+    image::DynamicImage::ImageRgb8(img)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
