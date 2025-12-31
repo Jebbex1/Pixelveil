@@ -7,6 +7,7 @@ license = "MIT"
 authors = ["Jebbex <107323805+Jebbex1@users.noreply.github.com>"]
 readme = "../README.md"
 repository = "https://github.com/Jebbex1/Pixelveil"
+documentation = "https://docs.rs/pixelveil/"
 keywords = ["steganography", "steganalysis"]
 workspace = "../"
 
