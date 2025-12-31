@@ -9,16 +9,16 @@
 //!
 //! Additionally, some steganography methods support specific filetypes or compression methods. Each method will have
 //! this info in its module level documentation.
-//! 
+//!
 //! # Custom Structs and Types Used in this Project
-//! The [RgbImage](https://docs.rs/image/latest/image/type.RgbImage.html) type is widely used in this project for 
-//! image processing in this crate. It represents a 24-bit RGB image, this specific type of image is the standard and 
+//! The [RgbImage](https://docs.rs/image/latest/image/type.RgbImage.html) type is widely used in this project for
+//! image processing in this crate. It represents a 24-bit RGB image, this specific type of image is the standard and
 //! most common way to represent images.
-//! 
-//! There are some functions that use the [DynamicImage](https://docs.rs/image/latest/image/enum.DynamicImage.html) 
+//!
+//! There are some functions that use the [DynamicImage](https://docs.rs/image/latest/image/enum.DynamicImage.html)
 //! enum because they don't require a 24-bit RGB image specifically.
-//! 
-//! For instructions and utility functions on how to open, handle, and export RgbImages and DynamicImages, consult the 
+//!
+//! For instructions and utility functions on how to open, handle, and export RgbImages and DynamicImages, consult the
 //! [image_utils] module.
 //!
 //! # Steganography Functionality
