@@ -60,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          PACKAGE_NAME=jeb1pochybrid
+          PACKAGE_NAME=pixelveil
 
           echo "Querying PyPI for $PACKAGE_NAME versions"
 
@@ -89,10 +89,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          SOURCE_CRATE_NAME=pixelveil
-          WRAPPER_CRATE_NAME=pixelveil_pyo3
-
-          DEPENDENCY=$(cargo metadata --format-version 1 --manifest-path python/Cargo.toml --no-deps | jq -r '.packages[] | select(.name == "jeb1pochybridpy").dependencies[] | select(.name == "jeb1pochybrid")')
+          DEPENDENCY=$(cargo metadata --format-version 1 --manifest-path python/Cargo.toml --no-deps | jq -r '.packages[] | select(.name == "pixelveil_pyo3").dependencies[] | select(.name == "pixelveil")')
           
           DEPENDENCY_SOURCE=$(echo $DEPENDENCY | jq -r '.source')
           DEPENDENCY_PATH=$(echo $DEPENDENCY | jq -r '.path')
