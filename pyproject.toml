@@ -1,6 +1,6 @@
 [project]
 name = "pixelveil"
-version = "0.1.0"
+version = "1.0.0"
 description = "A performant steganography and steganalysis library for hiding data in images, audio files, and videos"
 authors = [{ name = "Jebbex", email = "107323805+Jebbex1@users.noreply.github.com" }]
 requires-python = ">=3.13"
