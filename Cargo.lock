@@ -651,11 +651,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "pixelveil_pyo3"
-version = "0.1.0"
+name = "pixelveil"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bde15be96b61e55622d71520aa276b8b3365e8f545b84e70c07d70afd9894bb"
 dependencies = [
  "image",
- "pixelveil",
+ "itertools",
+ "num",
+ "rand",
+]
+
+[[package]]
+name = "pixelveil_pyo3"
+version = "1.0.0"
+dependencies = [
+ "image",
+ "pixelveil 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pyo3",
 ]
 
