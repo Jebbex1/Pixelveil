@@ -8,33 +8,17 @@ Steganography can be used for watermarking, covert communications and info hidin
 
 This library currently supports only [BPCS (Bit Plane Complexity Segmentation)](https://en.wikipedia.org/wiki/BPCS-steganography) steganography.
 
-## Rust Usage
+## Usage
 
-Please consult the Rust crate documentation.
+This project deploys both a Rust crate and Python package.
 
-## Python Usage
+### Rust Usage
 
-This library leverages [PyO3](https://github.com/PyO3/pyo3) to write python wrappers to the public interface of the Rust crate.
+Please consult the [Rust crate documentation](https://docs.rs/pixelveil/).
 
-Even if you don't program in Rust, I encourage you to read the Rust documentation of this library to have a good understanding of the Rust code that is called under the hood when the Python package is used.
+### Python Usage
 
-Please note that `pyo3_runtime.PanicException` can be raised if the underlying Rust program panics. If a program panics, it means that the arguments that were passed in are invalid. An explanation will be included in the error message. Every function that panics intentionally will have an explanation of the exact case in the docstring.
-
-If you are certain that the arguments that you passed in are valid but the function still panicked, contact a developer.
-
-Also note that, all functions that require an image (or images) as an argument(s) expect to receive bytes that describe an image in a known file format (e.g. PNG, JPEG, BMP...). They also return bytes that describe an image in a known format.
-
-All the Python functions have docstrings that I recommend you read before using the function.
-
-### Modules
-
-Each module name matches the name of the module it wraps. For example, the `bpcs` module in the Rust crate has a wrapper module that is named `bpcs`.
-
-In the Rust crate, there is a whole module tree that might be hard to navigate.Because of this, the PyO3 modules are all at the top level of the Python package. This was solved in Rust using re-exports.
-
-### Functions
-
-Each function is contained by the same module, and has the exact name as the Rust function it wraps. The argument types are slightly altered to adhere to Python's type system, but their order stays mostly the same.
+Please consult the Python package [README.md](python/README.md).
 
 ## Contributing
 
