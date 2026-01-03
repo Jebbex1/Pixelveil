@@ -1,0 +1,163 @@
+name: Release to PyPI
+
+on:
+  push:
+    tags:
+      - release/python-v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  check-versions:
+    name: Check and Compare versions across the release tag, pyproject.toml, and PyPI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Get pixelveil Python package version
+        run: |
+          set -euo pipefail
+
+          VERSION=$(uv version --short)
+          
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Failed to extract version from core/Cargo.toml"
+            exit 1
+          fi
+
+          echo "TOML_PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Detected pixelveil package version from pyproject.toml: $VERSION"
+
+      - name: Get push tag version
+        run: |
+          set -euo pipefail
+
+          FULL_PUSH_TAG=${{ github.ref_name }}
+
+          echo "Got push tag: $FULL_PUSH_TAG"
+
+          VERSION=$(echo "$FULL_PUSH_TAG" | grep -o "[0-9]\\+.[0-9]\\+.[0-9]\\+")
+
+          echo "PUSH_TAG_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Got version: $VERSION"
+      
+      - name: Check pyproject.toml and push tag version equality
+        run: |
+          set -euo pipefail
+
+          if [ "$PUSH_TAG_VERSION" != "$TOML_PACKAGE_VERSION" ]; then
+            echo "Push tag and pyproject.toml versions don't match. $PUSH_TAG_VERSION != $TOML_PACKAGE_VERSION. Exiting"
+            exit 1
+          fi
+
+          echo "Setting PACKAGE_VERSION variable"
+          echo "PACKAGE_VERSION=$PUSH_TAG_VERSION" >> $GITHUB_ENV
+
+      - name: Check for existing version on pypi.org
+        run: |
+          set -euo pipefail
+
+          PACKAGE_NAME=jeb1pochybrid
+
+          echo "Querying PyPI for $PACKAGE_NAME versions"
+
+          EXISTING=$(curl -fsSL "https://pypi.org/pypi/$PACKAGE_NAME/json" | jq -r '.releases | keys[]' \
+            | grep -Fx "$PACKAGE_VERSION" || true)
+
+          if [ -n "$EXISTING" ]; then
+            echo "::error::Version $PACKAGE_VERSION of package '$PACKAGE_NAME' already exists on PyPI"
+            exit 1
+          fi
+
+          echo "Version $PACKAGE_VERSION does not exist on PyPI — OK"
+  
+  check-dependency:
+    name: Check rust core dependency is on a published crate and not internal via path dependency
+    runs-on: ubuntu-latest
+    needs: [check-versions]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Check dependency
+        run: |
+          set -euo pipefail
+
+          SOURCE_CRATE_NAME=pixelveil
+          WRAPPER_CRATE_NAME=pixelveil_pyo3
+
+          DEPENDENCY=$(cargo metadata --format-version 1 --manifest-path python/Cargo.toml --no-deps | jq -r '.packages[] | select(.name == "jeb1pochybridpy").dependencies[] | select(.name == "jeb1pochybrid")')
+          
+          DEPENDENCY_SOURCE=$(echo $DEPENDENCY | jq -r '.source')
+          DEPENDENCY_PATH=$(echo $DEPENDENCY | jq -r '.path')
+
+          if [[ "$DEPENDENCY_SOURCE" == "null" || "$DEPENDENCY_PATH" != "null" ]]; then
+            echo "The wrapper crate depends on an unreleased version of the source crate."
+            exit 1
+          fi
+
+          echo "The wrapper crate depends on a released version of the source crate. Everything is good!"
+  
+  test:
+    name: Test release profile with maturin and PyTest
+    runs-on: ubuntu-latest
+    needs: [check-dependency]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install dev group with uv
+        run: |
+          uv sync --group dev
+      
+      - name: Maturin develop with release profile
+        run: |
+          uv run maturin develop --release
+        
+      - name: Run PyTest
+        run: |
+          uv run pytest
+  
+  deploy:
+    name: Deploy to PyPI
+    runs-on: ubuntu-latest
+    needs: [test]
+    permissions:
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: uv sync dev group
+        run: |
+          uv sync --group dev
+      
+      - name: Maturin build with release profile
+        run: |
+          rm -rf target/wheels
+
+          uv run maturin build --release
+      
+      - name: Publish to PyPI with uv
+        run: |
+          uv publish target/wheels/*
