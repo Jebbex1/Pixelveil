@@ -4,25 +4,19 @@ A performant steganography and steganalysis library for hiding data in images, a
 
 Steganography can be used for watermarking, covert communications and info hiding in general. It is a relatively small but very versatile field in programming. This is a passion project I develop to learn, improve, and create steganography methods.
 
-## The Currently Supported Steganography Methods
-
-This library currently supports only [BPCS (Bit Plane Complexity Segmentation)](https://en.wikipedia.org/wiki/BPCS-steganography) steganography.
-
-## Usage
+## Deployed Packages/Crates
 
 This project deploys both a Rust crate and Python package.
 
-### Rust Usage
+[Rust crate](https://crates.io/crates/pixelveil) | [Python package](https://pypi.org/project/pixelveil/)
 
-Please consult the [Rust crate documentation](https://docs.rs/pixelveil/).
+## The Currently Implemented Steganography Methods
 
-### Python Usage
-
-Please consult the Python package [README.md](python/README.md).
+This project currently implements only [BPCS (Bit Plane Complexity Segmentation)](https://en.wikipedia.org/wiki/BPCS-steganography) steganography.
 
 ## Contributing
 
-As of writing this README, there is no contributing program for this repository. If you are interested in contributing, contact me at `jebbex42@gmail.com`.
+As of writing this README, there is no contributing program for this repository. If you are interested in contributing, open an issue about it and we'll talk.
 
 ## Future Development
 
