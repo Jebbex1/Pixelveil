@@ -643,6 +643,8 @@ checksum = "35fb2e5f958ec131621fdd531e9fc186ed768cbe395337403ae56c17a74c68ec"
 [[package]]
 name = "pixelveil"
 version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bde15be96b61e55622d71520aa276b8b3365e8f545b84e70c07d70afd9894bb"
 dependencies = [
  "image",
  "itertools",
@@ -652,9 +654,7 @@ dependencies = [
 
 [[package]]
 name = "pixelveil"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bde15be96b61e55622d71520aa276b8b3365e8f545b84e70c07d70afd9894bb"
+version = "1.0.1"
 dependencies = [
  "image",
  "itertools",
@@ -667,7 +667,7 @@ name = "pixelveil_pyo3"
 version = "1.0.0"
 dependencies = [
  "image",
- "pixelveil 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pixelveil 1.0.0",
  "pyo3",
 ]
 
