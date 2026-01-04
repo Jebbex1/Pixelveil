@@ -4,9 +4,19 @@ A performant steganography and steganalysis library for hiding data in images, a
 
 Steganography can be used for watermarking, covert communications and info hiding in general. It is a relatively small but very versatile field in programming. This is a passion project I develop to learn, improve, and create steganography methods.
 
-## The Currently Supported Steganography Methods
+## Main Repository
 
-This library currently supports only [BPCS (Bit Plane Complexity Segmentation)](https://en.wikipedia.org/wiki/BPCS-steganography) steganography.
+This README corresponds to the Python package of this project. For the latest updates on development, contributing, and future plans please consult the [main repository](https://github.com/Jebbex1/Pixelveil).
+
+## Installation
+
+This package is available on PyPI.
+
+Installing via `pip`:
+
+```sh
+pip install pixelveil
+```
 
 ## Usage
 
@@ -31,18 +41,3 @@ In the Rust crate, there is a whole module tree that might be hard to navigate.B
 ### Functions
 
 Each function is contained by the same module, and has the exact name as the Rust function it wraps. The argument types are slightly altered to adhere to Python's type system, but their order stays mostly the same.
-
-## Contributing
-
-As of writing this README, there is no contributing program for this repository. If you are interested in contributing, contact me at `jebbex42@gmail.com`.
-
-## Future Development
-
-In the future I plan on implementing the following steganography methods (not in this particular order):
-
-* Image LSB (Least Significant Bit) — only for lossless filetypes
-* Lossless audio filetype (.wav) method(s)
-* Lossy audio filetype (.mp3) method(s)
-* Video steganography methods (.mp4)
-
-Because I am a One Man Operation™, I need time to research, prototype, and finalize each one of these steganography methods. So don't hold your breath :)
