@@ -1,4 +1,6 @@
-use symphonia::core::audio::{AudioBuffer, Signal, SignalSpec};
+use hound::{WavSpec, WavWriter};
+use std::io::{Seek, Write};
+use symphonia::core::audio::{AsAudioBufferRef, AudioBuffer, SampleBuffer, Signal, SignalSpec};
 use symphonia::core::codecs::{CODEC_TYPE_NULL, DecoderOptions};
 use symphonia::core::errors::Error;
 use symphonia::core::formats::{FormatOptions, FormatReader};
@@ -137,10 +139,40 @@ fn import_audio(src: Box<dyn MediaSource>) -> Result<AudioBuffer<f32>, Error> {
     Ok(merge_buffers(&packet_audio_buffers))
 }
 
+fn export_audio<T: Write + Seek>(
+    audio_buffer: AudioBuffer<f32>,
+    writer: &mut T,
+) -> Result<(), hound::Error> {
+    let spec = WavSpec {
+        channels: audio_buffer.spec().channels.count() as u16,
+        sample_rate: audio_buffer.spec().rate,
+        bits_per_sample: 32,
+        sample_format: hound::SampleFormat::Float,
+    };
+
+    let mut writer = WavWriter::new(writer, spec).unwrap();
+
+    let mut sample_buf = SampleBuffer::<f32>::new(
+        (audio_buffer.frames() * audio_buffer.spec().channels.count()) as u64,
+        *audio_buffer.spec(),
+    );
+
+    sample_buf.copy_interleaved_ref(audio_buffer.as_audio_buffer_ref());
+
+    for s in sample_buf.samples() {
+        writer.write_sample(*s)?;
+    }
+
+    writer.finalize()?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::utils::audio_utils::{export_audio, import_audio, merge_buffers};
+    use std::io::{Cursor, Seek};
     use symphonia::core::audio::{AudioBuffer, Channels, Signal, SignalSpec};
-    use crate::utils::audio_utils::merge_buffers;
 
     #[test]
     fn test_merge_buffers() {
@@ -176,5 +208,35 @@ mod tests {
         assert_eq!(merged_buffer.chan(0)[7], 0.6f32);
         assert_eq!(merged_buffer.chan(1)[5], 0f32);
         assert_eq!(merged_buffer.chan(1)[6], 1f32);
+    }
+
+    #[test]
+    fn test_circular_export_import_audio() -> Result<(), Box<dyn std::error::Error>> {
+        let spec = SignalSpec {
+            channels: Channels::FRONT_LEFT | Channels::FRONT_RIGHT,
+            rate: 44100,
+        };
+
+        let mut buf: AudioBuffer<f32> = AudioBuffer::new(4, spec);
+        buf.render_reserved(None);
+        buf.chan_mut(0)[2] = 0.3f32;
+        buf.chan_mut(0)[1] = -0.55221f32;
+        buf.chan_mut(1)[0] = -0.9f32;
+        buf.chan_mut(1)[3] = 0.8f32;
+
+        let buf_clone = buf.clone();
+
+        let v: Vec<u8> = Vec::new();
+        let mut cursor = Cursor::new(v);
+
+        export_audio(buf, &mut cursor)?;
+
+        cursor.seek(std::io::SeekFrom::Start(0))?; // reset cursor to start of file
+
+        let imported = import_audio(Box::new(cursor))?;
+
+        assert_eq!(imported.planes().planes(), buf_clone.planes().planes());
+
+        Ok(())
     }
 }
