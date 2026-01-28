@@ -21,3 +21,4 @@ itertools = "0.14.0"
 rand = "0.9.2"
 num = "0.4.3"
 symphonia = {version = "0.5.5", features = ["all"]}
+hound = "3.5.1"
