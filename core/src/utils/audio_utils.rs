@@ -34,7 +34,7 @@ fn merge_buffers(buffers: &[AudioBuffer<f32>]) -> AudioBuffer<f32> {
     merged_buffer
 }
 
-fn import_audio(src: Box<dyn MediaSource>) -> Result<AudioBuffer<f32>, Error> {
+pub(crate) fn import_audio(src: Box<dyn MediaSource>) -> Result<AudioBuffer<f32>, Error> {
     // Create the media source stream.
     let mss = MediaSourceStream::new(src, Default::default());
 
@@ -139,7 +139,7 @@ fn import_audio(src: Box<dyn MediaSource>) -> Result<AudioBuffer<f32>, Error> {
     Ok(merge_buffers(&packet_audio_buffers))
 }
 
-fn export_audio<T: Write + Seek>(
+pub(crate) fn export_audio<T: Write + Seek>(
     audio_buffer: AudioBuffer<f32>,
     writer: &mut T,
 ) -> Result<(), hound::Error> {

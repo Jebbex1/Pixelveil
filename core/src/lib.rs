@@ -43,6 +43,7 @@
 //! steganography methods. So don't hold your breath :)
 
 #![warn(missing_docs)]
+#![allow(unused)]
 
 #[macro_use]
 extern crate itertools;
@@ -56,3 +57,5 @@ pub mod utils;
 pub use image::lossless::bpcs;
 pub use steganalysis::image_steganalysis;
 pub use utils::image_utils;
+
+mod audio;
